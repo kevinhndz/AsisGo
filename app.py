@@ -34,6 +34,8 @@ def mostrar_login(request:Request):
     return templates.TemplateResponse(request, 'login.html')
 
 
+
+
 @app.post('/login', status_code=status.HTTP_200_OK)
 def login(
     json_recibido: RevisarDatos,
