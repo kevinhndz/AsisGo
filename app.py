@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 #model imports
 from models.almacen import miClaseBase,abrir_puerta_bd,motor
-from models.security_guard import BaseModel, RevisarDatos
+from models.security_guard import BaseModel, RevisarDatos, CrearCliente
 from models.tablas import TablaUsuarios
 from sqlalchemy.orm import Session
 
@@ -29,12 +29,24 @@ app.add_middleware(
 miClaseBase.metadata.create_all(bind = motor)
 
 
+#RUTA templates
+
 @app.get('/', response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse(request,'home.html')
+
+@app.get('/iniciar_sesion', response_class=HTMLResponse)
 def mostrar_login(request:Request):
     return templates.TemplateResponse(request, 'login.html')
 
+@app.get('/crear_cliente', response_class= HTMLResponse)
+def mostrar_sign_up_page(request: Request):
+    return templates.TemplateResponse(request,'signup.html')
 
 
+
+
+# RUTAS REST API
 
 @app.post('/login', status_code=status.HTTP_200_OK)
 def login(
@@ -59,7 +71,24 @@ def login(
     
     
         
+@app.post('/sign_up', status_code= status.HTTP_200_OK)
+def crear_cliente(
+     
+     json_enviado: RevisarDatos,
+     base_datos: Session = Depends(abrir_puerta_bd)
+     
     
+):
+    usuario_enviado = base_datos.query(TablaUsuarios).filter(TablaUsuarios.usuario == json_enviado.usuario).first()
+    
+    if usuario_enviado.usuario == json_enviado.usuario:
+        raise HTTPException(
+            status_code = status.HTTP_401_UNAUTHORIZED,
+            detail= f"Usuario: {json_enviado.usuario} ya esta siendo utilizado. Crea otro! "
+            
+        )
+    else:
+        return {"mensaje": f"{json_enviado.usuario} Bienvenido a Asis Go +! "}
     
     
     

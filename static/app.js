@@ -26,11 +26,11 @@ document.getElementById("formulario-login").addEventListener("submit", async fun
 
     //SI el statuu code es 200,
     if (respuesta.ok) {
-        document.getElementById("mensaje").innerText = datos.mensaje;
-        document.getElementById("mensaje").style.color = "green";
+        document.getElementById("bienvenida").innerText = datos.mensaje;
+        document.getElementById("bienvenida").style.color = "green";
     } else {
-        document.getElementById("mensaje").innerText = "Error: " + JSON.stringify(datos.detail);
-        document.getElementById("mensaje").style.color = "red";
+        document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos.detail);
+        document.getElementById("bienvenida").style.color = "red";
     }
 });
 
@@ -61,6 +61,11 @@ document.getElementById("formulario-nuevo").addEventListener( "submit", async fu
     
     document.getElementById("bienvenida").innerText = datos_recibidos.usuario;
     document.getElementById("bienvenida").style.color = "green";
+
+ } else{
+
+    document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos.detail);
+    document.getElementById("bienvenida").style.color = "red";
 
  }
 
