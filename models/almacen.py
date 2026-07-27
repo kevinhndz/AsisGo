@@ -22,7 +22,7 @@ FabricaLLaves = sessionmaker(bind=motor)
 miClaseBase = declarative_base()
 
 
-def abrir_puerta():
+def abrir_puerta_bd():
     base_datos = FabricaLLaves()
     try:
         yield base_datos
