@@ -1,5 +1,3 @@
-
-
 //vamos a HTML buscamos algun form que diga: "formulario-registro" - cuando le den click a al boton type submit
 // add event listener escucha que le dieron click, si eso es True, crea una funcion 
 document.getElementById("formulario-login").addEventListener("submit", async function(e) {
@@ -28,6 +26,10 @@ document.getElementById("formulario-login").addEventListener("submit", async fun
     if (respuesta.ok) {
         document.getElementById("bienvenida").innerText = datos.mensaje;
         document.getElementById("bienvenida").style.color = "green";
+        // Redirigir a interface después de 1 segundo
+        setTimeout(() => {
+            window.location.href = "/interface";
+        }, 1000);
     } else {
         document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos.detail);
         document.getElementById("bienvenida").style.color = "red";
@@ -45,7 +47,7 @@ document.getElementById("formulario-nuevo").addEventListener( "submit", async fu
  const contrasena = document.getElementById("contrasena").value;
 
 
- const repsuesta = await fetch("http://127.0.0.1:8000/sign_up",{
+ const respuesta = await fetch("http://127.0.0.1:8000/sign_up",{
 
      method: "POST",
      headers: { "Content-Type": "application/json" },
@@ -59,12 +61,16 @@ document.getElementById("formulario-nuevo").addEventListener( "submit", async fu
 
  if (respuesta.ok){
     
-    document.getElementById("bienvenida").innerText = datos_recibidos.usuario;
+    document.getElementById("bienvenida").innerText = datos_recibidos.mensaje;
     document.getElementById("bienvenida").style.color = "green";
+    // Redirigir a interface después de 1 segundo
+    setTimeout(() => {
+        window.location.href = "/interface";
+    }, 1000);
 
  } else{
 
-    document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos.detail);
+    document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos_recibidos.detail);
     document.getElementById("bienvenida").style.color = "red";
 
  }
@@ -72,10 +78,6 @@ document.getElementById("formulario-nuevo").addEventListener( "submit", async fu
 
 
 });
-
-
-
-
 
 
 

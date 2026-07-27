@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 #model imports
 from models.almacen import miClaseBase,abrir_puerta_bd,motor
 from models.security_guard import BaseModel, RevisarDatos, CrearCliente
-from models.tablas import TablaUsuarios
+from models.tablas import TablaUsuarios, TablaClientes
 from sqlalchemy.orm import Session
 
 
@@ -43,6 +43,10 @@ def mostrar_login(request:Request):
 def mostrar_sign_up_page(request: Request):
     return templates.TemplateResponse(request,'signup.html')
 
+@app.get('/interface', response_class=HTMLResponse)
+def mostrar_interface(request: Request):
+    return templates.TemplateResponse(request,'interface.html')
+
 
 
 
@@ -74,21 +78,26 @@ def login(
 @app.post('/sign_up', status_code= status.HTTP_200_OK)
 def crear_cliente(
      
-     json_enviado: RevisarDatos,
+     json_enviado: CrearCliente,
      base_datos: Session = Depends(abrir_puerta_bd)
      
     
 ):
     usuario_enviado = base_datos.query(TablaUsuarios).filter(TablaUsuarios.usuario == json_enviado.usuario).first()
     
-    if usuario_enviado.usuario == json_enviado.usuario:
+    if usuario_enviado is not None:
         raise HTTPException(
             status_code = status.HTTP_401_UNAUTHORIZED,
             detail= f"Usuario: {json_enviado.usuario} ya esta siendo utilizado. Crea otro! "
             
         )
     else:
+        nuevo_usuario = TablaUsuarios(usuario=json_enviado.usuario, contrasena=json_enviado.contrasena)
+        base_datos.add(nuevo_usuario)
+        base_datos.commit()
+        
+        nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, id_usuario=nuevo_usuario.id_usuario)
+        base_datos.add(nuevo_cliente)
+        base_datos.commit()
+        
         return {"mensaje": f"{json_enviado.usuario} Bienvenido a Asis Go +! "}
-    
-    
-    
