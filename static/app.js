@@ -35,6 +35,38 @@ document.getElementById("formulario-login").addEventListener("submit", async fun
 });
 
 
+document.getElementById("formulario-nuevo").addEventListener( "submit", async function (e){
+
+ e.preventDefault();
+
+ const nombre = document.getElementById("nombre").value;
+ const telefono = document.getElementById("telefono").value;
+ const usuario = document.getElementById("usuario").value;
+ const contrasena = document.getElementById("contrasena").value;
+
+
+ const repsuesta = await fetch("http://127.0.0.1:8000/sign_up",{
+
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({nombre: nombre, telefono: telefono, usuario: usuario, contrasena: contrasena })
+
+
+
+ });
+
+ const datos_recibidos = await respuesta.json();
+
+ if (respuesta.ok){
+    
+    document.getElementById("bienvenida").innerText = datos_recibidos.usuario;
+    document.getElementById("bienvenida").style.color = "green";
+
+ }
+
+
+
+});
 
 
 
