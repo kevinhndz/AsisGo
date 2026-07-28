@@ -92,12 +92,18 @@ def crear_cliente(
             
         )
     else:
+        #Crear nuevo usuario
         nuevo_usuario = TablaUsuarios(usuario=json_enviado.usuario, contrasena=json_enviado.contrasena)
         base_datos.add(nuevo_usuario)
-        base_datos.commit()
+        base_datos.flush()  
         
-        nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, id_usuario=nuevo_usuario.id_usuario)
+        #Ahora el ID está disponible
+        nuevo_cliente = TablaClientes(
+            nombre=json_enviado.nombre, 
+            telefono=json_enviado.telefono, 
+            id_usuario=nuevo_usuario.id_usuario
+        )
         base_datos.add(nuevo_cliente)
-        base_datos.commit()
+        base_datos.commit() 
         
         return {"mensaje": f"{json_enviado.usuario} Bienvenido a Asis Go +! "}
