@@ -5,8 +5,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from models.almacen import miClaseBase,abrir_puerta_bd,motor
-from models.security_guard import BaseModel, RevisarDatos, CrearCliente
-from models.tablas import TablaUsuarios, TablaClientes
+from models.security_guard import BaseModel, RevisarDatos, CrearCliente, CrearClase, RegistrarEstudiante
+from models.tablas import TablaUsuarios, TablaClientes, TablaClases, TablaAsistencia, TablaEstudiantes
 from sqlalchemy.orm import Session
 
 import pyotp
@@ -103,3 +103,47 @@ def crear_cliente(
            
             
             return {"mensaje": f" ¡Bienvenido {json_enviado.usuario}!"}
+
+
+@app.post('/crear-clase', status_code=status.HTTP_200_OK)
+def crear_clase(
+    json_clase: CrearClase,
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    clase_existe = base_datos.query(TablaClases).filter(TablaClases.codigo == json_clase.codigo).first()
+    if clase_existe:
+        raise HTTPException(status_code=409, detail="Código de clase ya existe")
+    
+    nueva_clase = TablaClases(
+        nombre=json_clase.nombre,
+        codigo=json_clase.codigo,
+        horario=json_clase.horario,
+        ubicacion=json_clase.ubicacion,
+        id_profesor=1  # Por ahora fijo
+    )
+    base_datos.add(nueva_clase)
+    base_datos.commit()
+    return {"mensaje": f"Clase {json_clase.nombre} creada", "id": nueva_clase.id_clase}
+
+
+@app.get('/mis-clases')
+def obtener_mis_clases(base_datos: Session = Depends(abrir_puerta_bd)):
+    clases = base_datos.query(TablaClases).filter(TablaClases.id_profesor == 1).all()
+    return [{"id": c.id_clase, "nombre": c.nombre, "codigo": c.codigo, "horario": c.horario, "ubicacion": c.ubicacion} for c in clases]
+
+
+@app.get('/clase/{id_clase}')
+def obtener_clase(id_clase: int, base_datos: Session = Depends(abrir_puerta_bd)):
+    clase = base_datos.query(TablaClases).filter(TablaClases.id_clase == id_clase).first()
+    if not clase:
+        raise HTTPException(status_code=404, detail="Clase no encontrada")
+    
+    estudiantes = base_datos.query(TablaEstudiantes).filter(TablaEstudiantes.id_clase == id_clase).all()
+    return {
+        "id": clase.id_clase,
+        "nombre": clase.nombre,
+        "codigo": clase.codigo,
+        "horario": clase.horario,
+        "ubicacion": clase.ubicacion,
+        "estudiantes": [{"id": e.id_estudiante, "nombre": e.nombre, "numero_cuenta": e.numero_cuenta, "modalidad": e.modalidad} for e in estudiantes]
+    }

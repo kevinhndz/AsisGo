@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace - Asis GO+</title>
+    <link rel="stylesheet" href="/static/workspace.css">
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Asis GO+ - Mis Clases</h1>
+        <button onclick="mostrarFormularioNuevaClase()">+ Nueva Clase</button>
+    </div>
+
+  
+    <div id="formulario-clase" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h2>Crear Nueva Clase</h2>
+            <form id="form-crear-clase">
+                <input type="text" id="nombre-clase" placeholder="Nombre (ej: Español)" required>
+                <input type="text" id="codigo-clase" placeholder="Código (ej: ESP101)" required>
+                <input type="text" id="horario-clase" placeholder="Horario (ej: Lunes 4:00 PM - 7:00 PM)" required>
+                <input type="text" id="ubicacion-clase" placeholder="Ubicación (ej: Aula 201)" required>
+                <button type="submit">Crear</button>
+                <button type="button" onclick="cerrarFormulario()">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="clases-grid" id="clases-grid">
+   
+    </div>
+</div>
+
+<script src="/static/workspace.js"></script>
+</body>
+</html>

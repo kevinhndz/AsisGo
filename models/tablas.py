@@ -53,3 +53,5 @@ class TablaAsistencia(miClaseBase):
     id_clase = Column(Integer, ForeignKey("clases.id_clase"))
     fecha = Column(DateTime, default=datetime.now)
     presente = Column(Boolean, default=False)
+    
+
