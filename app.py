@@ -4,7 +4,6 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-#model imports
 from models.almacen import miClaseBase,abrir_puerta_bd,motor
 from models.security_guard import BaseModel, RevisarDatos, CrearCliente
 from models.tablas import TablaUsuarios, TablaClientes
@@ -60,9 +59,11 @@ def login(
     user_que_vino = base_datos.query(TablaUsuarios).filter(TablaUsuarios.usuario == json_recibido.usuario).first()
     
     if user_que_vino is None:
+        # BUFIX (Error #1): pedian que si el usuario no existe diga
+        # "Usuario no encontrado" en vez de "Usuario o contraseña incorrectos"
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario o contraseña incorrectos"
+            detail="Usuario no encontrado"
         )
     
     if user_que_vino.contrasena != json_recibido.contrasena:
@@ -75,35 +76,29 @@ def login(
     
     
         
-@app.post('/sign_up', status_code= status.HTTP_200_OK)
+@app.post('/sign_up', status_code=status.HTTP_200_OK)
 def crear_cliente(
-     
      json_enviado: CrearCliente,
      base_datos: Session = Depends(abrir_puerta_bd)
-     
-    
 ):
     usuario_enviado = base_datos.query(TablaUsuarios).filter(TablaUsuarios.usuario == json_enviado.usuario).first()
     
     if usuario_enviado is not None:
         raise HTTPException(
-            status_code = status.HTTP_401_UNAUTHORIZED,
-            detail= f"Usuario: {json_enviado.usuario} ya esta siendo utilizado. Crea otro! "
-            
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Usuario: {json_enviado.usuario} ya esta siendo utilizado. Crea otro! "
         )
     else:
-        #Crear nuevo usuario
-        nuevo_usuario = TablaUsuarios(usuario=json_enviado.usuario, contrasena=json_enviado.contrasena)
-        base_datos.add(nuevo_usuario)
-        base_datos.flush()  
         
-        #Ahora el ID está disponible
-        nuevo_cliente = TablaClientes(
-            nombre=json_enviado.nombre, 
-            telefono=json_enviado.telefono, 
-            id_usuario=nuevo_usuario.id_usuario
-        )
-        base_datos.add(nuevo_cliente)
-        base_datos.commit() 
-        
-        return {"mensaje": f"{json_enviado.usuario} Bienvenido a Asis Go +! "}
+            nuevo_usuario = TablaUsuarios(usuario=json_enviado.usuario, contrasena=json_enviado.contrasena)
+            base_datos.add(nuevo_usuario)
+            base_datos.flush()
+            
+            nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, id_usuario=nuevo_usuario.id_usuario)
+            base_datos.add(nuevo_cliente)
+            base_datos.commit()
+           
+            
+            return {"mensaje": f"¡Usuario creado! ¡Bienvenido {json_enviado.usuario}!"}
+    
+  

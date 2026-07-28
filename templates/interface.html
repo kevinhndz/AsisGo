@@ -12,6 +12,21 @@
     <p id="bienvenida"></p>
 
     
-    <script src="/static/app.js"></script>
+    <script>
+
+        
+const mensaje = sessionStorage.getItem("mensajeBienvenida");
+
+if (mensaje) {
+    document.getElementById("bienvenida").innerText = mensaje;
+    document.getElementById("bienvenida").style.color = "green";
+    
+    sessionStorage.removeItem("mensajeBienvenida");
+}
+
+
+
+
+    </script>
 </body>
 </html>
