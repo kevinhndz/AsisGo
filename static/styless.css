@@ -1,0 +1,137 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
+
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Inter', sans-serif;
+    color: #ece1d1;
+    background-color: #17130a;
+    background-image: linear-gradient(to top, #17130a, rgba(23, 19, 10, 0.5)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    background-blend-mode: luminosity;
+}
+
+/* Título principal */
+h1 {
+    font-family: 'Geist', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    margin-bottom: 2rem;
+    color: #ffffff;
+    text-align: center;
+    letter-spacing: -1px;
+}
+
+/* Tarjeta Glassmorphism (Tu formulario) */
+#formulario-login {
+    background: rgba(23, 23, 23, 0.5);
+    backdrop-filter: blur(32px);
+    -webkit-backdrop-filter: blur(32px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2.5rem;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 350px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+#formulario-login div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Etiquetas de los inputs */
+label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: rgba(211, 197, 172, 0.8);
+}
+
+/* Inputs de texto y contraseña */
+input {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.9rem 1rem;
+    color: #ffffff;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    border-color: rgba(255, 209, 101, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 209, 101, 0.1);
+}
+
+/* Botón de envío */
+button {
+    width: 100%;
+    background: linear-gradient(to bottom, #2a2315, #000000);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #ffd165;
+    font-family: 'Geist', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    margin-top: 0.5rem;
+}
+
+button:hover {
+    transform: scale(1.02);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* Párrafos y enlaces externos al formulario */
+p {
+    margin-top: 1.5rem;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+    color: rgba(211, 197, 172, 0.8);
+}
+
+a {
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: rgba(255, 209, 101, 0.3);
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #ffd165;
+}
+
+/* Mensaje de error/bienvenida */
+#bienvenida {
+    min-height: 20px;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+/* Ocultar visualmente los <br> del HTML para manejar el espaciado con CSS moderno */
+br {
+    display: none;
+}
