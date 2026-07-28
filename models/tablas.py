@@ -14,10 +14,6 @@ class TablaClientes(miClaseBase):
     
     id_cliente = Column(Integer, primary_key=True)
     nombre = Column(String(100))
-    telefono = Column(Integer)
+    telefono = Column(String(20)) 
     id_usuario = Column(Integer, ForeignKey("Usuarios.id_usuario"), unique=True)
-  
-    
-    
-
 
