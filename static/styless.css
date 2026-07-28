@@ -135,3 +135,225 @@ a:hover {
 br {
     display: none;
 }
+
+
+/* --- ESTILOS ADICIONALES PARA EL REGISTRO --- */
+
+.main-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    overflow: hidden;
+}
+
+/* Panel Izquierdo con imagen inmersiva */
+.left-panel {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .left-panel {
+        display: flex;
+        width: 50%;
+        position: relative;
+        background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
+        background-size: cover;
+        background-position: center;
+        align-items: center;
+    }
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, #17130a, rgba(23, 19, 10, 0.6)), rgba(0, 0, 0, 0.4);
+}
+
+.left-content {
+    position: relative;
+    z-index: 10;
+    padding: 4rem;
+    max-width: 500px;
+}
+
+.badge-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.badge-line .line {
+    width: 48px;
+    height: 4px;
+    background-color: #ffd165;
+}
+
+.badge-line span {
+    font-family: 'Geist', sans-serif;
+    font-size: 0.75rem;
+    color: #ffd165;
+    text-transform: uppercase;
+    letter-spacing: 0.3em;
+    font-weight: 700;
+}
+
+.left-content h1 {
+    font-family: 'Geist', sans-serif;
+    font-size: 3rem;
+    font-weight: 900;
+    line-height: 1.1;
+    color: #ece1d1;
+    margin-bottom: 1rem;
+}
+
+.left-content .highlight {
+    color: #ffd165;
+    font-style: italic;
+    font-weight: 300;
+}
+
+.left-content p {
+    color: #d3c5ac;
+    opacity: 0.8;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+}
+
+.code-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    border-left: 2px solid rgba(255, 209, 101, 0.3);
+    padding-left: 1rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    color: rgba(236, 225, 209, 0.6);
+    text-transform: uppercase;
+}
+
+/* Panel Derecho (Formulario) */
+.right-panel {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #120e05;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@media (min-width: 1024px) {
+    .right-panel {
+        width: 50%;
+        background-color: transparent;
+    }
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.form-wrapper h2 {
+    font-family: 'Geist', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #ece1d1;
+    margin-bottom: 0.25rem;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: #d3c5ac;
+    margin-bottom: 2rem;
+}
+
+#formulario-nuevo {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.input-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #d3c5ac;
+}
+
+.input-group input {
+    background: #2f291f;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+    padding: 1rem;
+    color: #ece1d1;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input-group input:focus {
+    border-bottom-color: #ffd165;
+}
+
+/* Botón de Registro */
+button[type="submit"] {
+    margin-top: 1rem;
+    width: 100%;
+    padding: 1rem;
+    border-radius: 9999px;
+    background-color: #ffd165;
+    color: #3f2e00;
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 10px 25px -5px rgba(255, 209, 101, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button[type="submit"]:hover {
+    transform: scale(1.02);
+    box-shadow: 0 15px 30px -5px rgba(255, 209, 101, 0.4);
+}
+
+/* Enlaces del pie */
+.links-footer {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.links-footer a {
+    color: #d3c5ac;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.links-footer a:hover {
+    color: #ffd165;
+}
+
+#bienvenida {
+    font-weight: 600;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
