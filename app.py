@@ -99,6 +99,6 @@ def crear_cliente(
             base_datos.commit()
            
             
-            return {"mensaje": f"¡Usuario creado! ¡Bienvenido {json_enviado.usuario}!"}
+            return {"mensaje": f" ¡Bienvenido {json_enviado.usuario}!"}
     
   

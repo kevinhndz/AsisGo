@@ -357,3 +357,306 @@ button[type="submit"]:hover {
     font-size: 0.875rem;
     text-align: center;
 }
+
+
+
+/* --- ESTILOS GENERALES Y HOME --- */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #17130a;
+    color: #ece1d1;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+}
+
+/* Contenedor principal con la imagen de fondo */
+.hero-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 95vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-bg-image {
+    position: absolute;
+    inset: 0;
+    background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    z-index: 1;
+}
+
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(23, 19, 10, 0.85), rgba(23, 19, 10, 0.80)), rgba(0, 0, 0, 0.4);
+    z-index: 2;
+}
+
+/* Navbar superior */
+.navbar-container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem 3rem;
+}
+
+.brand-container {
+    display: flex;
+    align-items: center;
+}
+
+.brand {
+    font-family: 'Geist', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #ece1d1;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.brand strong {
+    color: #ffd165;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+}
+
+.nav-item {
+    color: #ece1d1;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: color 0.3s ease;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.nav-item:hover {
+    color: #ffd165;
+}
+
+.nav-item--cta {
+    background-color: #ffd165;
+    color: #3f2e00;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    box-shadow: 0 10px 20px -5px rgba(255, 209, 101, 0.3);
+    transition: transform 0.2s ease;
+}
+
+.nav-item--cta:hover {
+    transform: scale(1.05);
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 1.5rem 5rem 1.5rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+
+/* CONTENEDOR TIPO VIDRIO ESMERILADO (GLASSMORPHISM) */
+.hero-logo-container {
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 20px !important;
+    padding: 14px 24px !important;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5) !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.uph-logo-hero {
+    width: 90px;
+    height: auto;
+    object-fit: contain;
+    /* Quitamos los filtros anteriores para que conserve sus colores originales limpios */
+    mix-blend-mode: normal;
+    filter: none;
+}
+
+.hero-title {
+    font-family: 'Geist', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1.15;
+    color: #ece1d1;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.hero-highlight {
+    color: #ffd165;
+    font-style: italic;
+    font-weight: 300;
+}
+
+.hero-subtitle {
+    color: #e2d6c3;
+    font-size: 1.15rem;
+    line-height: 1.6;
+    max-width: 700px;
+    margin-bottom: 2.5rem;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+
+.btn-primary {
+    background-color: #ffd165;
+    color: #3f2e00;
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.8rem;
+    padding: 1.1rem 2.5rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    box-shadow: 0 15px 30px -5px rgba(255, 209, 101, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: inline-block;
+}
+
+.btn-primary:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 40px -5px rgba(255, 209, 101, 0.6);
+}
+
+/* Benefits Section */
+.benefits-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+}
+
+.section-header h2 {
+    font-family: 'Geist', sans-serif;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: #ece1d1;
+    margin-bottom: 0.5rem;
+}
+
+.section-header p {
+    color: #d3c5ac;
+    font-size: 0.95rem;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 768px) {
+    .benefits-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .hero-title {
+        font-size: 4.5rem;
+    }
+}
+
+.benefit-card {
+    background-color: #241f15;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1rem;
+    padding: 2.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.benefit-card:hover {
+    border-color: rgba(255, 209, 101, 0.5);
+    transform: translateY(-5px);
+}
+
+.benefit-icon {
+    width: 54px;
+    height: 54px;
+    background-color: rgba(255, 209, 101, 0.1);
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffd165;
+    margin-bottom: 1.5rem;
+}
+
+.benefit-icon .material-symbols-outlined {
+    font-size: 28px;
+}
+
+.benefit-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #ffd165;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.5rem;
+}
+
+.benefit-card h3 {
+    font-family: 'Geist', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ece1d1;
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+}
+
+.benefit-card p {
+    color: #d3c5ac;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* Footer */
+.site-footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    padding: 2.5rem;
+    margin-top: 2rem;
+}
+
+.footer-text {
+    font-size: 0.8rem;
+    color: #d3c5ac;
+    opacity: 0.7;
+    margin: 0;
+}

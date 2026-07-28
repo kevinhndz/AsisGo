@@ -17,3 +17,14 @@ class TablaClientes(miClaseBase):
     telefono = Column(String(20))
     id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), unique=True)
     
+class TablaMaterias (miClaseBase):
+    __tablename__ = "materias"
+    
+    id_materia = Column(Integer, primary_key=True)
+    nombre = Column(String(50))
+    seccion = Column(String(20), unique= True)
+    id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), unique= True)
+
+
+    
+    
