@@ -9,6 +9,9 @@ from models.security_guard import BaseModel, RevisarDatos, CrearCliente
 from models.tablas import TablaUsuarios, TablaClientes
 from sqlalchemy.orm import Session
 
+import pyotp
+from io import BytesIO
+import base64
 
 
 
@@ -99,6 +102,4 @@ def crear_cliente(
             base_datos.commit()
            
             
-            return {"mensaje": f"¡Usuario creado! ¡Bienvenido {json_enviado.usuario}!"}
-    
-  
+            return {"mensaje": f" ¡Bienvenido {json_enviado.usuario}!"}
