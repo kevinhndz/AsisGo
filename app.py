@@ -157,4 +157,13 @@ def crear_materia (
         return  {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
     
     
+@app.get("/mis_materias")
+def obtener_mis_materias(
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materias_del_profe = base_datos.query(TablaMaterias).filter(TablaMaterias.id_usuario == id_del_profesor).all()
+    return materias_del_profe
+    
+    
   

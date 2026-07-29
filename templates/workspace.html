@@ -1,14 +1,57 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Mis Clases - Workspace</title>
+    <link rel="stylesheet" href="/static/styless.css">
 </head>
 <body>
 
+    <h1>Mis Clases Registradas</h1>
+    <p><a href="/interface">← Volver al Panel</a></p>
+
+  
+    <div id="contenedor-materias">
+        <p>Cargando clases...</p>
+    </div>
+
+    <script>
+    async function cargarClases() {
+        // 1. Sacamos el token que guardamos cuando el usuario hizo login
+        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
+
+        // 2. Pedimos las materias a FastAPI mandando el token en el header
+        const respuesta = await fetch("http://127.0.0.1:8000/mis_materias", {
+            method: "GET",
+            headers: { 
+                "Authorization": "Bearer " + tokenGuardado 
+            }
+        });
+
+        const materias = await respuesta.json();
+        const contenedor = document.getElementById("contenedor-materias");
+
+        if (respuesta.ok) {
+            if (materias.length === 0) {
+                contenedor.innerHTML = "<p>No tienes clases registradas todavía.</p>";
+                return;
+            }
+
+            
+            let html = "<ul>";
+            materias.forEach(m => {
+                html += `<li><strong>Clase:</strong> ${m.nombre} - <strong>Sección:</strong> ${m.seccion} - <strong>Horario:</strong> ${m.horario}</li>`;
+            });
+            html += "</ul>";
+            
+            contenedor.innerHTML = html;
+        } else {
+            contenedor.innerHTML = "<p>Error al cargar las clases.</p>";
+        }
+    }
 
     
-    
+    cargarClases();
+    </script>
 </body>
 </html>
