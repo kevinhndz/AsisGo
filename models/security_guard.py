@@ -10,6 +10,14 @@ class CrearCliente(BaseModel):
     telefono: str = Field(min_length=8, max_length=20)
     usuario: str = Field(min_length=6, max_length=10)
     contrasena: str = Field(min_length=8, max_length=15)
+    
+class CrearMateria(BaseModel):
+    nombre: str = Field(min_length=5, max_length=50)
+    seccion: str = Field(min_length=4, max_length=8)
+    horario: str = Field(min_length=5,max_length=10)
+    
+    
+    
 
     
     
