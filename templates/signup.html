@@ -45,6 +45,11 @@
                         <input type="text" id="telefono" placeholder="+504 8950-0088" required>
                     </div>
 
+                      <div class="input-group">
+                        <label>Tu Correo:</label>
+                        <input type="text" id="correo" placeholder="kevs@uph.edu.hn" required>
+                    </div>
+
                     <div class="input-group">
                         <label>Escribe tu Nombre de Usuario:</label>
                         <input type="text" id="usuario" placeholder="kevstpg" required>
@@ -74,13 +79,14 @@
             e.preventDefault();
             const nombre = document.getElementById("nombre").value;
             const telefono = document.getElementById("telefono").value;
+            const correo = document.getElementById("correo").value;
             const usuario = document.getElementById("usuario").value;
             const contrasena = document.getElementById("contrasena").value;
             
             const respuesta = await fetch("http://127.0.0.1:8000/sign_up",{
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({nombre: nombre, telefono: telefono, usuario: usuario, contrasena: contrasena })
+                body: JSON.stringify({nombre: nombre, telefono: telefono,correo: correo, usuario: usuario, contrasena: contrasena })
             });
             
             const datos_recibidos = await respuesta.json();

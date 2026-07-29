@@ -98,7 +98,7 @@ def crear_cliente(
             base_datos.add(nuevo_usuario)
             base_datos.flush()
             
-            nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, id_usuario=nuevo_usuario.id_usuario)
+            nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, correo = json_enviado.correo, id_usuario=nuevo_usuario.id_usuario)
             base_datos.add(nuevo_cliente)
             base_datos.commit()
            
