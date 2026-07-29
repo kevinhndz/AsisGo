@@ -8,6 +8,7 @@ from models.almacen import miClaseBase,abrir_puerta_bd,motor
 from models.security_guard import BaseModel, RevisarDatos, CrearCliente, CrearMateria
 from models.tablas import TablaUsuarios, TablaClientes, TablaMaterias
 from sqlalchemy.orm import Session
+from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema
 
 
 
@@ -76,7 +77,29 @@ def login(
             detail="Contrasena Incorrecta!"
         )
     
-    return {"mensaje": f"{user_que_vino.usuario} Bienvenido!"}
+    #Aqui empieza la Autenticacion
+    
+    #Step 1 --> Cree un hashmap para mandar a crear un nuevo Token
+    diccionario_profesor = {
+        "id_usuario":user_que_vino.id_usuario,
+        "usuario": user_que_vino.usuario
+    }
+    
+    #Step #2 --> mandar a llamr emituir credecial para mandar el JSON a revision
+    #PSDTA: Esta funcion lo que hace es devolverme mi JWT secreto.
+    mi_token = emitir_credencial(diccionario_profesor)
+    
+    #
+    return {
+        
+        "mensaje":"Bienvenido",
+        "token":mi_token,  # aqui lo agrego
+        "token_type":"Bearer"
+    
+    }
+    
+    
+    
     
     
         
@@ -109,6 +132,8 @@ def crear_cliente(
 @app.post("/crear_materia", status_code= status.HTTP_200_OK)
 def crear_materia (
      json_enviado : CrearMateria,
+     #extraemos el id del token de un solo
+     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
      base_datos : Session = Depends(abrir_puerta_bd)
 ):
     datos_enviados = base_datos.query(TablaMaterias).filter(TablaMaterias.seccion == json_enviado.seccion).first()
@@ -122,7 +147,8 @@ def crear_materia (
         nueva_clase = TablaMaterias(
             nombre = json_enviado.nombre, 
             seccion = json_enviado.seccion, 
-            horario = json_enviado.horario
+            horario = json_enviado.horario,
+            id_usuario=id_del_profesor
             )
         base_datos.add(nueva_clase)
         base_datos.commit()

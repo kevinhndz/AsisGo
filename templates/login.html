@@ -53,6 +53,7 @@ document.getElementById("formulario-login").addEventListener("submit", async fun
         // Guardamos el mensaje en la "cajita" del navegador (sessionStorage)
         // para poder leerlo despues en interface.html
         sessionStorage.setItem("mensajeBienvenida", datos.mensaje);
+        sessionStorage.setItem("miTokenJWT", datos.token)
         // Redirigir a interface
         window.location.href = "/interface";
     } else {

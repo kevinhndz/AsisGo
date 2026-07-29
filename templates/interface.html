@@ -1,132 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Panel - Asis GO+</title>
     <link rel="stylesheet" href="/static/styless.css">
 </head>
 <body>
 
-   <div class="titulo_inter">
+    <h1>Panel del Profesor</h1>
 
-    <h1 id="bienvenida"></h1>
-
-
-    <nav class="navbar">
-
-        <ul>
-
-            <a href="/"> <li>LogOut</li></a>
-        </ul>
-
-
-    </nav>
-
-   </div>
-
-   <br> 
-   <br>
-   <br>
-  
-   <main class="opciones">
-
-
-    <section class="opc1">
-   
-        <img src="/static/uph logo.jpg" alt="">
+    <section>
         <h3>Registrar Nueva Clase</h3>
-
         <form id="formulario-materias">
-
-            <input type="text" id="nombre" placeholder="tu nombre" required>
+            <input type="text" id="nombre" placeholder="Nombre de la clase" required>
             <br>
-            <input type="text" id="seccion" placeholder="0801" required>
+            <input type="text" id="seccion" placeholder="Sección (ej: 0801)" required>
             <br>
-            <input type="text" id="horario" placeholder="Lunes" required>
-            <br>
-            <br>
-            <button type="submit">Registrar Clase </button>
-
-
+            <input type="text" id="horario" placeholder="Horario (ej: Lunes)" required>
+            <br><br>
+            <button type="submit">Registrar Clase</button>
         </form>
-
         <p id="creado"></p>
-
     </section>
 
-
-  
-    <section class="opc2">
-
-        
-
-
-    </section>
-
-   </main>
-
-
-
-
-
-
-
-    
-
-    
     <script>
+    // El JS escucha el envío del formulario de materias
+    document.getElementById("formulario-materias").addEventListener("submit", async function (e){
+        e.preventDefault();
 
-        
-const mensaje = sessionStorage.getItem("mensajeBienvenida");
+        const nombre = document.getElementById("nombre").value;
+        const seccion = document.getElementById("seccion").value;
+        const horario = document.getElementById("horario").value;
 
-if (mensaje) {
-    document.getElementById("bienvenida").innerText = mensaje;
-    document.getElementById("bienvenida").style.color = "green";
-    
-    sessionStorage.removeItem("mensajeBienvenida");
-}
+        // 1. Abrimos  el token JWT guardado en el login
+        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
-document.getElementById("formulario-materias").addEventListener("submit", async function (e){
+        // 2. Hacemos el fetch mandando los datos y el token en el sobre de seguridad (headers)
+        const respuesta = await fetch("http://127.0.0.1:8000/crear_materia", {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + tokenGuardado 
+            }, 
+            body: JSON.stringify({ nombre: nombre, seccion: seccion, horario: horario })
+        });
 
-e.preventDefault()
+        const datos = await respuesta.json();
 
-const nombre = document.getElementById("nombre").value;
-const seccion = document.getElementById("seccion").value;
-const horario = document.getElementById("horario").value;
-
-//mandar y empaquetar JSON
-
-
-//creo un fetch al endpoint crear_materia
-
-const respuesta = await fetch ( "http://127.0.0.1:8000/crear_materia", {
-
-method: "POST",
-headers: { "Content-Type": "application/json" }, // le decimos a FastAPI -> "vas a revisar un hashmap" 
-body: JSON.stringify({ nombre: nombre, seccion:seccion,horario:horario })
-
-});
-
-const datos = await respuesta.json()
-
-if(respuesta.ok){
-
-    document.getElementById("creado").innerText = datos.mensaje;
-    document.getElementById("creado").style.color = "green";
-}
-else{
-    document.getElementById("creado").innerText = "Error: " + JSON.stringify(datos.detail);
-    document.getElementById("creado").style.color = "red";
-}
-
-
-
-});
-
-
-
-
+        if(respuesta.ok){
+            document.getElementById("creado").innerText = datos.mensaje;
+            document.getElementById("creado").style.color = "green";
+        } else {
+            document.getElementById("creado").innerText = "Error: " + JSON.stringify(datos.detail);
+            document.getElementById("creado").style.color = "red";
+        }
+    });
     </script>
 </body>
 </html>
