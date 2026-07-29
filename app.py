@@ -5,8 +5,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from models.almacen import miClaseBase,abrir_puerta_bd,motor
-from models.security_guard import BaseModel, RevisarDatos, CrearCliente
-from models.tablas import TablaUsuarios, TablaClientes
+from models.security_guard import BaseModel, RevisarDatos, CrearCliente, CrearMateria
+from models.tablas import TablaUsuarios, TablaClientes, TablaMaterias
 from sqlalchemy.orm import Session
 
 
@@ -45,6 +45,10 @@ def mostrar_sign_up_page(request: Request):
 @app.get('/interface', response_class=HTMLResponse)
 def mostrar_interface(request: Request):
     return templates.TemplateResponse(request,'interface.html')
+
+@app.get('/workspace', response_class=HTMLResponse)
+def mostrar_workspace(request: Request):
+    return templates.TemplateResponse(request,'workspace.html')
 
 
 
@@ -100,5 +104,31 @@ def crear_cliente(
            
             
             return {"mensaje": f" ¡Bienvenido {json_enviado.usuario}!"}
+        
+        
+@app.post("/crear_materia", status_code= status.HTTP_200_OK)
+def crear_materia (
+     json_enviado : CrearMateria,
+     base_datos : Session = Depends(abrir_puerta_bd)
+):
+    datos_enviados = base_datos.query(TablaMaterias).filter(TablaMaterias.seccion == json_enviado.seccion).first()
+    
+    if datos_enviados is not None:
+        raise HTTPException(
+            status_code= status.HTTP_400_BAD_REQUEST,
+            detail= f"La seccion: {datos_enviados.seccion} ya esta registrada."
+        )
+    else:
+        nueva_clase = TablaMaterias(
+            nombre = json_enviado.nombre, 
+            seccion = json_enviado.seccion, 
+            horario = json_enviado.horario
+            )
+        base_datos.add(nueva_clase)
+        base_datos.commit()
+        
+    
+        return  {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
+    
     
   

@@ -2,6 +2,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
 
 
+.titulo_inter{
+
+text-align: center;
+color:  black;
+padding: 10px;
+
+}
 body {
     margin: 0;
     padding: 0;
