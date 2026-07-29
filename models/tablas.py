@@ -32,6 +32,7 @@ class TablaEstudiantes(miClaseBase):
     id_estudiante = Column(Integer, primary_key= True)
     nombre = Column (String(50))
     telefono = Column(String(20))
+    modalidad = Column(String(15))
     id_materia = Column(Integer, ForeignKey("materias.id_materia"), unique=True)
     
     
