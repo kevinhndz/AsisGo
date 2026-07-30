@@ -437,3 +437,196 @@ def obtener_asistencia_hoy(
         "presentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in presentes],
         "ausentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in ausentes]
     }
+    
+
+@app.post("/materia/{id_materia}/configurar_ubicacion")
+def configurar_ubicacion(
+    id_materia: int,
+    lat: float,
+    lng: float,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    materia.lat_aula = str(lat)
+    materia.lng_aula = str(lng)
+    base_datos.commit()
+
+    return {"mensaje": "Ubicación del aula guardada correctamente."}
+
+
+# --- Trae la lista completa de estudiantes de una materia CON sus faltas calculadas ---
+@app.get("/materia/{id_materia}/estudiantes")
+def listar_estudiantes_con_faltas(
+    id_materia: int,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    estudiantes = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_materia == id_materia
+    ).all()
+
+    resultado = []
+    for est in estudiantes:
+        # Contamos cuantas filas de asistencia tiene este estudiante
+        # marcadas como presente=False. Eso es "las faltas".
+        total_faltas = base_datos.query(TablaAsistencia).filter(
+            TablaAsistencia.id_estudiante == est.id_estudiante,
+            TablaAsistencia.presente == False
+        ).count()
+
+        resultado.append({
+            "id_estudiante": est.id_estudiante,
+            "nombre": est.nombre,
+            "correo": est.correo,
+            "telefono": est.telefono,
+            "numero_cuenta": est.numero_cuenta,
+            "modalidad": est.modalidad,
+            "faltas": total_faltas
+        })
+
+    return resultado
+
+
+# --- Editar los datos de un estudiante (nombre, correo, modalidad, etc) ---
+@app.put("/estudiante/{id_estudiante}")
+def editar_estudiante(
+    id_estudiante: int,
+    json_enviado: CrearEstudiante,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    estudiante = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_estudiante == id_estudiante
+    ).first()
+
+    if estudiante is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ese estudiante no existe."
+        )
+
+    # Verificamos que el estudiante pertenezca a una materia de ESTE profesor,
+    # para que un profesor no pueda editar estudiantes de otro.
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == estudiante.id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ese estudiante no pertenece a una de tus materias."
+        )
+
+    estudiante.nombre = json_enviado.nombre
+    estudiante.telefono = json_enviado.telefono
+    estudiante.correo = json_enviado.correo
+    estudiante.numero_cuenta = json_enviado.numero_cuenta
+    estudiante.modalidad = json_enviado.modalidad.strip().lower()
+    base_datos.commit()
+
+    return {"mensaje": f"{estudiante.nombre} actualizado correctamente."}
+
+
+# --- Eliminar un estudiante del curso ---
+@app.delete("/estudiante/{id_estudiante}")
+def eliminar_estudiante(
+    id_estudiante: int,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    estudiante = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_estudiante == id_estudiante
+    ).first()
+
+    if estudiante is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ese estudiante no existe."
+        )
+
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == estudiante.id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ese estudiante no pertenece a una de tus materias."
+        )
+
+    base_datos.query(TablaAsistencia).filter(
+        TablaAsistencia.id_estudiante == id_estudiante
+    ).delete()
+
+    base_datos.delete(estudiante)
+    base_datos.commit()
+
+    return {"mensaje": "Estudiante eliminado del curso."}
+
+
+
+@app.put("/asistencia/manual")
+def editar_asistencia_manual(
+    id_estudiante: int,
+    id_materia: int,
+    fecha: date,
+    presente: bool,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Esa materia no te pertenece."
+        )
+
+    fila = base_datos.query(TablaAsistencia).filter(
+        TablaAsistencia.id_estudiante == id_estudiante,
+        TablaAsistencia.id_materia == id_materia,
+        TablaAsistencia.fecha == fecha
+    ).first()
+
+    if fila is None:
+        
+        fila = TablaAsistencia(
+            id_estudiante=id_estudiante,
+            id_materia=id_materia,
+            fecha=fecha,
+            presente=presente,
+            modalidad_usada="manual"
+        )
+        base_datos.add(fila)
+    else:
+        fila.presente = presente
+
+    base_datos.commit()
+    return {"mensaje": "Asistencia actualizada correctamente."}
