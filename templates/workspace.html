@@ -188,6 +188,10 @@
             <button onclick="abrirModalQR()" style="width:auto; padding:0.75rem 2rem;">
                 Generar QR
             </button>
+            <button onclick="configurarUbicacionAula()" style="width:auto; padding:0.75rem 1.5rem; margin-left:0.5rem;">
+                📍 Configurar ubicación del aula
+            </button>
+            <p id="estado-ubicacion-aula" style="font-size:0.8rem; margin-top:0.6rem;"></p>
         </div>
 
         <!-- 2. Tabla en vivo (solo si clase en curso) -->
@@ -366,10 +370,20 @@ async function cargarAsistenciaVivo() {
         <tbody>`;
 
     presentes.forEach(e => {
+        let estadoHtml;
+        if (e.modalidad === "virtual") {
+            estadoHtml = `<span class="badge-presente">✓ Presente</span>`;
+        } else if (e.dentro_del_rango === true) {
+            estadoHtml = `<span class="badge-presente">✓ Presente (en el aula)</span>`;
+        } else if (e.dentro_del_rango === false) {
+            estadoHtml = `<span style="color:#ffb020; font-weight:700;">⚠ Presente (fuera del aula)</span>`;
+        } else {
+            estadoHtml = `<span style="color:#ffb020; font-weight:700;">⚠ Presente (sin verificar ubicación)</span>`;
+        }
         html += `<tr>
             <td>${e.nombre}</td>
             <td style="text-transform:capitalize;">${e.modalidad}</td>
-            <td class="badge-presente">✓ Presente</td>
+            <td>${estadoHtml}</td>
         </tr>`;
     });
     ausentes.forEach(e => {
@@ -490,6 +504,42 @@ async function confirmarEliminar(idEst) {
     else { const d = await resp.json(); alert("Error: " + d.detail); }
 }
 
+function configurarUbicacionAula() {
+    const estado = document.getElementById("estado-ubicacion-aula");
+
+    if (!navigator.geolocation) {
+        estado.innerText = "Tu navegador no soporta geolocalización.";
+        estado.style.color = "#ff7070";
+        return;
+    }
+
+    estado.innerText = "Obteniendo tu ubicación actual...";
+    estado.style.color = "#d3c5ac";
+
+    navigator.geolocation.getCurrentPosition(async function (posicion) {
+        const lat = posicion.coords.latitude;
+        const lng = posicion.coords.longitude;
+
+        const resp = await fetch(`/materia/${idMateriaActual}/configurar_ubicacion`, {
+            method: "POST",
+            headers: hdrs(),
+            body: JSON.stringify({ lat, lng })
+        });
+        const datos = await resp.json();
+
+        if (resp.ok) {
+            estado.innerText = "✓ Ubicación del aula guardada. Ya se puede validar la asistencia presencial.";
+            estado.style.color = "#6dffb0";
+        } else {
+            estado.innerText = "Error: " + datos.detail;
+            estado.style.color = "#ff7070";
+        }
+    }, function () {
+        estado.innerText = "No se pudo obtener tu ubicación. Asegúrate de estar en el salón y dar permiso al navegador.";
+        estado.style.color = "#ff7070";
+    });
+}
+
 // ─── QR ───────────────────────────────────────────────────
 async function pedirTokenYPintarQR() {
     const resp = await fetch(`/materia/${idMateriaActual}/generar_qr_token`, {
@@ -500,8 +550,7 @@ async function pedirTokenYPintarQR() {
         return;
     }
     const datos  = await resp.json();
-    const ipBase = `http://${datos.ip_local}:8000`;
-    const urlQR  = `${ipBase}/marcar?id_materia=${idMateriaActual}&token=${datos.token}`;
+    const urlQR  = `${datos.base_url}/marcar?id_materia=${idMateriaActual}&token=${datos.token}`;
 
     const cont = document.getElementById("contenedor-qr");
     cont.innerHTML = "";
@@ -542,7 +591,7 @@ document.getElementById("modal-form").addEventListener("click", function(e) {
     if (e.target === this) cerrarModalForm();
 });
 
-// ─── GRABACIÓN ────────────────────────────────────────────
+
 async function publicarGrabacion() {
     const url = document.getElementById("url-grabacion").value.trim();
     if (!url) { alert("Pega el URL de la grabación primero."); return; }
