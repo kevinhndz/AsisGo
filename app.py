@@ -48,6 +48,11 @@ def mostrar_login(request: Request):
     return templates.TemplateResponse(request, 'login.html')
 
 
+@app.get('/sign_up', response_class=HTMLResponse)
+def mostrar_signup(request: Request):
+    return templates.TemplateResponse(request, 'sign_up.html')
+
+
 @app.get('/interface', response_class=HTMLResponse)
 def mostrar_interface(request: Request):
     return templates.TemplateResponse(request, 'interface.html')
