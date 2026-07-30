@@ -10,22 +10,47 @@
     <h1>Mis Clases Registradas</h1>
     <p><a href="/interface">← Volver al Panel</a></p>
 
-  
     <div id="contenedor-materias">
         <p>Cargando clases...</p>
     </div>
 
+
+    <div id="vista-detalle-clase" style="display:none; margin-top:30px; border-top:2px solid #333; padding-top:20px;">
+        <button onclick="volverALista()">← Volver a mis clases</button>
+        <h2 id="titulo-clase-detalle"></h2>
+
+        <h3>Configurar ubicación del aula (una sola vez)</h3>
+        <button onclick="configurarUbicacion()">Usar mi ubicación actual como aula</button>
+        <p id="estado-ubicacion-aula"></p>
+
+        <h3>Estudiantes y Faltas</h3>
+        <table border="1" cellpadding="6" style="border-collapse:collapse; width:100%;">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Teléfono</th>
+                    <th>Cuenta</th>
+                    <th>Modalidad</th>
+                    <th>Faltas</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-tabla-estudiantes">
+                <!-- se llena con JS -->
+            </tbody>
+        </table>
+    </div>
+
     <script>
+    let idMateriaActual = null;
+
     async function cargarClases() {
-        // 1. Sacamos el token que guardamos cuando el usuario hizo login
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
-        // 2. Pedimos las materias a FastAPI mandando el token en el header
         const respuesta = await fetch("http://127.0.0.1:8000/mis_materias", {
             method: "GET",
-            headers: { 
-                "Authorization": "Bearer " + tokenGuardado 
-            }
+            headers: { "Authorization": "Bearer " + tokenGuardado }
         });
 
         const materias = await respuesta.json();
@@ -37,20 +62,109 @@
                 return;
             }
 
-            
             let html = "<ul>";
             materias.forEach(m => {
-                html += `<li><strong>Clase:</strong> ${m.nombre} - <strong>Sección:</strong> ${m.seccion} - <strong>Horario:</strong> ${m.horario}</li>`;
+                html += `<li>
+                    <strong>Clase:</strong> ${m.nombre} - <strong>Sección:</strong> ${m.seccion} - <strong>Horario:</strong> ${m.horario}
+                    <button onclick="irAClase(${m.id_materia}, '${m.nombre}')">Ir a clase</button>
+                </li>`;
             });
             html += "</ul>";
-            
+
             contenedor.innerHTML = html;
         } else {
             contenedor.innerHTML = "<p>Error al cargar las clases.</p>";
         }
     }
 
-    
+    function irAClase(idMateria, nombreMateria) {
+        idMateriaActual = idMateria;
+        document.getElementById("contenedor-materias").style.display = "none";
+        document.getElementById("vista-detalle-clase").style.display = "block";
+        document.getElementById("titulo-clase-detalle").innerText = nombreMateria;
+        cargarEstudiantesConFaltas();
+    }
+
+    function volverALista() {
+        document.getElementById("vista-detalle-clase").style.display = "none";
+        document.getElementById("contenedor-materias").style.display = "block";
+        idMateriaActual = null;
+    }
+
+    async function configurarUbicacion() {
+        navigator.geolocation.getCurrentPosition(async function (posicion) {
+            const tokenGuardado = sessionStorage.getItem("miTokenJWT");
+            const lat = posicion.coords.latitude;
+            const lng = posicion.coords.longitude;
+
+            const respuesta = await fetch(
+                `http://127.0.0.1:8000/materia/${idMateriaActual}/configurar_ubicacion?lat=${lat}&lng=${lng}`,
+                { method: "POST", headers: { "Authorization": "Bearer " + tokenGuardado } }
+            );
+
+            const datos = await respuesta.json();
+            document.getElementById("estado-ubicacion-aula").innerText =
+                respuesta.ok ? datos.mensaje : "Error: " + datos.detail;
+        });
+    }
+
+    async function cargarEstudiantesConFaltas() {
+        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
+
+        const respuesta = await fetch(`http://127.0.0.1:8000/materia/${idMateriaActual}/estudiantes`, {
+            method: "GET",
+            headers: { "Authorization": "Bearer " + tokenGuardado }
+        });
+
+        const estudiantes = await respuesta.json();
+        const cuerpo = document.getElementById("cuerpo-tabla-estudiantes");
+
+        if (!respuesta.ok) {
+            cuerpo.innerHTML = `<tr><td colspan="7">Error: ${estudiantes.detail}</td></tr>`;
+            return;
+        }
+
+        if (estudiantes.length === 0) {
+            cuerpo.innerHTML = `<tr><td colspan="7">Todavía no hay estudiantes inscritos.</td></tr>`;
+            return;
+        }
+
+        let html = "";
+        estudiantes.forEach(e => {
+            html += `<tr id="fila-${e.id_estudiante}">
+                <td>${e.nombre}</td>
+                <td>${e.correo}</td>
+                <td>${e.telefono}</td>
+                <td>${e.numero_cuenta}</td>
+                <td>${e.modalidad}</td>
+                <td>${e.faltas}</td>
+                <td>
+                    <button onclick="eliminarEstudiante(${e.id_estudiante})">Eliminar</button>
+                </td>
+            </tr>`;
+        });
+
+        cuerpo.innerHTML = html;
+    }
+
+    async function eliminarEstudiante(idEstudiante) {
+        if (!confirm("¿Seguro que quieres eliminar este estudiante del curso?")) return;
+
+        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
+
+        const respuesta = await fetch(`http://127.0.0.1:8000/estudiante/${idEstudiante}`, {
+            method: "DELETE",
+            headers: { "Authorization": "Bearer " + tokenGuardado }
+        });
+
+        if (respuesta.ok) {
+            document.getElementById(`fila-${idEstudiante}`).remove();
+        } else {
+            const datos = await respuesta.json();
+            alert("Error: " + datos.detail);
+        }
+    }
+
     cargarClases();
     </script>
 </body>
