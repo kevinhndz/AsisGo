@@ -26,6 +26,11 @@
 
     <a href="/workspace" style="font-size: 18px; font-weight: bold;">Ver mis clases registradas →</a>
 
+    <!-- ======================================================
+         NUEVO: boton y modal de QR. Le pones el id_materia real
+         cuando integres esto a la vista de una clase especifica
+         (por ahora prueba escribiendo el numero a mano abajo).
+    ====================================================== -->
     <hr>
     <h3>Código de Asistencia</h3>
     <p>
@@ -41,7 +46,9 @@
     </div>
 
     <script>
-   
+    // ----------------------------------------------------------
+    // Lógica original tuya de crear materia (sin tocar)
+    // ----------------------------------------------------------
     document.getElementById("formulario-materias").addEventListener("submit", async function (e){
         e.preventDefault();
 
@@ -71,7 +78,9 @@
         }
     });
 
-    
+    // ----------------------------------------------------------
+    // NUEVO: Lógica del QR dinámico
+    // ----------------------------------------------------------
     let intervaloQR = null;
     let objetoQR = null;
 
