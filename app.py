@@ -48,9 +48,10 @@ def mostrar_login(request: Request):
     return templates.TemplateResponse(request, 'login.html')
 
 
+# FIX #1: el archivo se llama signup.html (sin guion bajo)
 @app.get('/sign_up', response_class=HTMLResponse)
 def mostrar_signup(request: Request):
-    return templates.TemplateResponse(request, 'sign_up.html')
+    return templates.TemplateResponse(request, 'signup.html')
 
 
 @app.get('/interface', response_class=HTMLResponse)
@@ -190,8 +191,18 @@ def obtener_mis_materias(
 
 
 # ============================================================
-# RUTAS REST — inscripcion publica de estudiantes
+# RUTAS HTML + REST — inscripcion publica de estudiantes
 # ============================================================
+
+# FIX #3: ruta generica /inscripcion redirige al formulario sin seccion especifica
+@app.get('/inscripcion', response_class=HTMLResponse)
+def form_inscripcion_base(request: Request):
+    return templates.TemplateResponse(
+        request,
+        'inscripcion.html',
+        {"seccion": ""}
+    )
+
 
 @app.get('/inscribirse/{seccion}', response_class=HTMLResponse)
 def form_inscripcion(seccion: str, request: Request):
@@ -219,13 +230,14 @@ def guardar_inscripcion(
         )
 
     cuenta_existente = base_datos.query(TablaEstudiantes).filter(
-        TablaEstudiantes.numero_cuenta == json_enviado.numero_cuenta
+        TablaEstudiantes.numero_cuenta == json_enviado.numero_cuenta,
+        TablaEstudiantes.id_materia == materia_encontrada.id_materia
     ).first()
 
     if cuenta_existente is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"El numero de cuenta {json_enviado.numero_cuenta} ya esta registrado."
+            detail=f"El numero de cuenta {json_enviado.numero_cuenta} ya esta registrado en esta clase."
         )
 
     modalidad_limpia = json_enviado.modalidad.strip().lower()
@@ -336,17 +348,12 @@ def marcar_asistencia(
             detail="Tu numero de cuenta no esta inscrito en esta clase."
         )
 
-    if estudiante.modalidad == "presencial":
-        materia = base_datos.query(TablaMaterias).filter(
-            TablaMaterias.id_materia == id_materia
-        ).first()
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia
+    ).first()
 
-        if materia.lat_aula is None or materia.lng_aula is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="El profesor todavia no configuro la ubicacion del aula."
-            )
-
+    # Solo valida ubicacion si el aula tiene coordenadas configuradas Y el estudiante es presencial
+    if estudiante.modalidad == "presencial" and materia.lat_aula and materia.lng_aula:
         if json_enviado.lat is None or json_enviado.lng is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -429,7 +436,7 @@ def obtener_asistencia_hoy(
 
 
 # ============================================================
-# RUTAS REST — CRUD de estudiantes
+# RUTAS REST — CRUD completo de estudiantes
 # ============================================================
 
 @app.get("/materia/{id_materia}/estudiantes")
@@ -471,6 +478,57 @@ def listar_estudiantes_con_faltas(
         })
 
     return resultado
+
+
+# FIX #5: agregar estudiante manualmente desde el workspace del profesor
+@app.post("/materia/{id_materia}/agregar_estudiante", status_code=status.HTTP_200_OK)
+def agregar_estudiante_manual(
+    id_materia: int,
+    json_enviado: CrearEstudiante,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    cuenta_existente = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.numero_cuenta == json_enviado.numero_cuenta,
+        TablaEstudiantes.id_materia == id_materia
+    ).first()
+
+    if cuenta_existente is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"El numero de cuenta {json_enviado.numero_cuenta} ya esta registrado en esta clase."
+        )
+
+    modalidad_limpia = json_enviado.modalidad.strip().lower()
+    if modalidad_limpia not in ("presencial", "virtual"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Modalidad debe ser 'presencial' o 'virtual'."
+        )
+
+    nuevo_estudiante = TablaEstudiantes(
+        nombre=json_enviado.nombre,
+        telefono=json_enviado.telefono,
+        correo=json_enviado.correo,
+        numero_cuenta=json_enviado.numero_cuenta,
+        modalidad=modalidad_limpia,
+        id_materia=id_materia
+    )
+    base_datos.add(nuevo_estudiante)
+    base_datos.commit()
+
+    return {"mensaje": f"{json_enviado.nombre} agregado correctamente."}
 
 
 @app.put("/estudiante/{id_estudiante}")
@@ -548,87 +606,9 @@ def eliminar_estudiante(
     return {"mensaje": "Estudiante eliminado del curso."}
 
 
-@app.post("/materia/{id_materia}/configurar_ubicacion")
-def configurar_ubicacion(
-    id_materia: int,
-    lat: float,
-    lng: float,
-    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
-    base_datos: Session = Depends(abrir_puerta_bd)
-):
-    materia = base_datos.query(TablaMaterias).filter(
-        TablaMaterias.id_materia == id_materia,
-        TablaMaterias.id_usuario == id_del_profesor
-    ).first()
-
-    if materia is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Esa materia no existe o no te pertenece."
-        )
-
-    materia.lat_aula = str(lat)
-    materia.lng_aula = str(lng)
-    base_datos.commit()
-
-    return {"mensaje": "Ubicacion del aula guardada correctamente."}
-
-
 # ============================================================
-# RUTAS REST — cierre de clase y grabacion
+# RUTAS REST — publicar grabacion (sin cerrar_clase ni ubicacion)
 # ============================================================
-
-@app.post("/materia/{id_materia}/cerrar_clase")
-def cerrar_clase(
-    id_materia: int,
-    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
-    base_datos: Session = Depends(abrir_puerta_bd)
-):
-    materia = base_datos.query(TablaMaterias).filter(
-        TablaMaterias.id_materia == id_materia,
-        TablaMaterias.id_usuario == id_del_profesor
-    ).first()
-
-    if materia is None:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Esa materia no te pertenece."
-        )
-
-    hoy = date.today()
-    todos_los_estudiantes = base_datos.query(TablaEstudiantes).filter(
-        TablaEstudiantes.id_materia == id_materia
-    ).all()
-
-    ids_ya_registrados_hoy = {
-        a.id_estudiante for a in base_datos.query(TablaAsistencia).filter(
-            TablaAsistencia.id_materia == id_materia,
-            TablaAsistencia.fecha == hoy
-        ).all()
-    }
-
-    contador_ausentes = 0
-    for estudiante in todos_los_estudiantes:
-        if estudiante.id_estudiante not in ids_ya_registrados_hoy:
-            nueva_falta = TablaAsistencia(
-                id_estudiante=estudiante.id_estudiante,
-                id_materia=id_materia,
-                fecha=hoy,
-                presente=False,
-                modalidad_usada=estudiante.modalidad
-            )
-            base_datos.add(nueva_falta)
-            contador_ausentes += 1
-
-    base_datos.commit()
-
-    if id_materia in SESIONES_QR_ACTIVAS:
-        del SESIONES_QR_ACTIVAS[id_materia]
-
-    return {
-        "mensaje": f"Clase cerrada. {contador_ausentes} estudiante(s) marcado(s) como ausente."
-    }
-
 
 @app.post("/materia/{id_materia}/publicar_grabacion")
 def publicar_grabacion(
