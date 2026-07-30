@@ -48,8 +48,10 @@ def revisar_credencial_en_sistema(credencial_deslizada: str = Depends(lector_mag
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Esta credencial esta en blanco, no tiene tu numero de maestro."
             )
+        else:
+            return id_del_profesor
             
-        return id_del_profesor
+        
 
     except jwt.ExpiredSignatureError:
         raise HTTPException(
