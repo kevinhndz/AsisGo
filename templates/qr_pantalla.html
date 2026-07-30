@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Asistencia — Asis GO+</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #17130a;
+            background-image: linear-gradient(to top, #17130a, rgba(23,19,10,0.6)),
+                url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            font-family: 'Inter', sans-serif;
+            color: #ece1d1;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .logo {
+            font-family: 'Geist', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: #ffd165;
+            letter-spacing: -0.5px;
+        }
+
+        .instruccion {
+            font-size: 1.1rem;
+            color: #d3c5ac;
+            text-align: center;
+        }
+
+        .qr-wrapper {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 30px 80px -10px rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Animación flash cuando se renueva */
+            transition: opacity 0.25s ease;
+        }
+        .qr-wrapper.renovando { opacity: 0; }
+
+        /* Barra de progreso */
+        .barra-container {
+            width: 300px;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        .barra-progreso {
+            height: 100%;
+            background: #ffd165;
+            border-radius: 9999px;
+            width: 100%;
+            transform-origin: left;
+            transition: transform 1s linear;
+        }
+
+        .contador-texto {
+            font-size: 0.85rem;
+            color: #d3c5ac;
+            text-align: center;
+        }
+
+        .aviso {
+            font-size: 0.8rem;
+            color: rgba(211,197,172,0.5);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">Asis GO+</div>
+    <p class="instruccion">Escanea el código para marcar tu asistencia</p>
+
+    <div class="qr-wrapper" id="qr-wrapper">
+        <div id="contenedor-qr"></div>
+    </div>
+
+    <div class="barra-container">
+        <div class="barra-progreso" id="barra"></div>
+    </div>
+
+    <p class="contador-texto" id="contador-texto">Se renueva en 15s</p>
+    <p class="aviso">El código cambia automáticamente cada 15 segundos</p>
+
+    <script>
+    // El id_materia e ip_local vienen inyectados por Jinja2
+    const ID_MATERIA = {{ id_materia }};
+    const IP_LOCAL   = "{{ ip_local }}";
+
+    let intervalo      = null;
+    let intervaloBarra = null;
+
+    async function renovarQR() {
+        // Flash de desvanecimiento
+        const wrapper = document.getElementById("qr-wrapper");
+        wrapper.classList.add("renovando");
+
+        const resp = await fetch(`/materia/${ID_MATERIA}/generar_qr_token_publico`);
+        if (!resp.ok) { wrapper.classList.remove("renovando"); return; }
+
+        const datos = await resp.json();
+        const urlQR = `http://${IP_LOCAL}:8000/marcar?id_materia=${ID_MATERIA}&token=${datos.token}`;
+
+        const cont = document.getElementById("contenedor-qr");
+        cont.innerHTML = "";
+
+        setTimeout(() => {
+            new QRCode(cont, { text: urlQR, width: 280, height: 280 });
+            wrapper.classList.remove("renovando");
+        }, 200);
+
+        // Reiniciar barra de progreso
+        iniciarBarra();
+    }
+
+    function iniciarBarra() {
+        const barra = document.getElementById("barra");
+        const texto = document.getElementById("contador-texto");
+
+        if (intervaloBarra) clearInterval(intervaloBarra);
+
+        let seg = 15;
+        barra.style.transform = "scaleX(1)";
+        texto.innerText = `Se renueva en ${seg}s`;
+
+        intervaloBarra = setInterval(() => {
+            seg--;
+            const pct = seg / 15;
+            barra.style.transform = `scaleX(${pct})`;
+            texto.innerText = `Se renueva en ${seg}s`;
+            if (seg <= 0) clearInterval(intervaloBarra);
+        }, 1000);
+    }
+
+    // Arrancar
+    renovarQR();
+    intervalo = setInterval(renovarQR, 15000);
+    </script>
+</body>
+</html>
