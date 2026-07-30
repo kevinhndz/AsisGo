@@ -4,8 +4,26 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from math import radians, sin, cos, sqrt, atan2
+import socket
+
+# Detecta la IP local de la red (para que el QR funcione desde celulares en la misma WiFi)
+def obtener_ip_local() -> str:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "127.0.0.1"
+
+IP_LOCAL = obtener_ip_local()
+
+# Registro de clases en curso: { id_materia: datetime_inicio }
+# Se usa para mostrar la tabla de asistencia en vivo (máx 3 horas)
+CLASES_EN_CURSO: dict = {}
 
 from models.almacen import miClaseBase, abrir_puerta_bd, motor
 from models.security_guard import (
@@ -304,8 +322,57 @@ def generar_qr_token(
             detail="Esa materia no existe o no te pertenece."
         )
 
+    # Registrar la clase como en curso (límite 3 horas)
+    if id_materia not in CLASES_EN_CURSO:
+        CLASES_EN_CURSO[id_materia] = datetime.utcnow()
+
     resultado = generar_nuevo_token(id_materia)
+    # Incluir la IP local para que la URL del QR funcione desde celulares
+    resultado["ip_local"] = IP_LOCAL
     return resultado
+
+
+# ─── Página de vista grande del QR (abre en nueva pestaña, para proyectar) ───
+
+@app.get("/qr_pantalla/{id_materia}", response_class=HTMLResponse)
+def qr_pantalla(id_materia: int, request: Request):
+    return templates.TemplateResponse(
+        request,
+        "qr_pantalla.html",
+        {"id_materia": id_materia, "ip_local": IP_LOCAL}
+    )
+
+
+# ─── Endpoint público para que qr_pantalla.html renueve el QR sin JWT ───
+# Solo genera token si ya existe una sesión activa (el profesor ya abrió el QR)
+
+@app.get("/materia/{id_materia}/generar_qr_token_publico")
+def generar_qr_token_publico(id_materia: int):
+    # Solo permite si ya hay una sesión activa para esta materia
+    if id_materia not in SESIONES_QR_ACTIVAS and id_materia not in CLASES_EN_CURSO:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No hay una clase activa para esta materia."
+        )
+    resultado = generar_nuevo_token(id_materia)
+    resultado["ip_local"] = IP_LOCAL
+    return resultado
+
+
+# ─── Endpoint para que workspace consulte si la clase sigue en curso (<3h) ───
+
+@app.get("/materia/{id_materia}/clase_en_curso")
+def clase_en_curso(
+    id_materia: int,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema)
+):
+    inicio = CLASES_EN_CURSO.get(id_materia)
+    if inicio is None:
+        return {"en_curso": False}
+    if datetime.utcnow() - inicio > timedelta(hours=3):
+        del CLASES_EN_CURSO[id_materia]
+        return {"en_curso": False}
+    return {"en_curso": True}
 
 
 @app.get("/marcar", response_class=HTMLResponse)
