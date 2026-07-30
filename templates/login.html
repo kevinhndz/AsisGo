@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-    <title>Iniciar Sesión - Asis GO+</title>
+    <meta charset="UTF-8">
+    <title>Login - Asis GO+</title>
     <link rel="stylesheet" href="/static/styless.css">
 </head>
 <body>
-
-    <h1>Registro en Asis GO+</h1>
+    <h1>Inicia Sesión</h1>
     
     <form id="formulario-login">
         <div>
@@ -24,46 +23,31 @@
     </form>
 
     <p id="bienvenida"></p>
+    <p><a href="/sign_up">¿No tienes cuenta? Registrate aqui</a></p>
+    <p><a href="/">← Volver al inicio</a></p>
 
-<p>¿No tienes cuenta? <a href="/crear_cliente">Registrate aqui</a></p>
-<p><a href="/">← Volver al inicio</a></p>
-  
     <script>
-    // vamos a HTML buscamos algun form que diga: "formulario-login" - cuando le den click a al boton type submit
-// add event listener escucha que le dieron click, si eso es True, crea una funcion
-document.getElementById("formulario-login").addEventListener("submit", async function(e) {
-    e.preventDefault();  // la funcion es "e", asi que para que no cargue le HTML lo paramos para que de la repsuesta ahi mismo
-    const usuario = document.getElementById("usuario").value; // cada dato en input type text trae un ID. SACAMOS ese valor con.value
-    const contrasena = document.getElementById("contrasena").value;
-    // Listo para mandar Crear, empaquetar el JSON y mandarlo por la web
-    // await fetch - > le decimos a Js "Vamos a enviar un paquete por internet" mandalo a esta direccion
-    // OJO: hay que asegurarse de que marque al endpoint / login donde tenemos la ruta para validar la contrasena
-    //rellenamos los datos que SIEMPRE VAN. 
-    const respuesta = await fetch("http://127.0.0.1:8000/login", {  
-        method: "POST", // mandamos un post (esto siempre va)
-        headers: { "Content-Type": "application/json" }, // le decimos a FastAPI -> "vas a revisar un hashmap" 
-        body: JSON.stringify({ usuario: usuario, contrasena: contrasena })
-        // esta es la parte mas importante, aqui esto siempre va, pero lo que hace es que un objeto JS no puede viajar por a red
-        // asi que lo convertimos en text plano {}
+    document.getElementById("formulario-login").addEventListener("submit", async function(e) {
+        e.preventDefault();
+        const usuario = document.getElementById("usuario").value;
+        const contrasena = document.getElementById("contrasena").value;
+
+        const respuesta = await fetch("http://127.0.0.1:8000/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario: usuario, contrasena: contrasena })
+        });
+        
+        const datos = await respuesta.json();
+
+        if (respuesta.ok) {
+            sessionStorage.setItem("miTokenJWT", datos.token);
+            window.location.href = "/workspace";
+        } else {
+            document.getElementById("bienvenida").innerText = "Error: " + datos.detail;
+            document.getElementById("bienvenida").style.color = "red";
+        }
     });
-    const datos = await respuesta.json(); // creamos una nueva variable llamada datos para guardar la respuesta que mando Python
-    
-    //SI el statuu code es 200,
-    if (respuesta.ok) {
-        // Guardamos el mensaje en la "cajita" del navegador (sessionStorage)
-        // para poder leerlo despues en interface.html
-        sessionStorage.setItem("mensajeBienvenida", datos.mensaje);
-        sessionStorage.setItem("miTokenJWT", datos.token)
-        // Redirigir a interface
-        window.location.href = "/interface";
-    } else {
-        document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos.detail);
-        document.getElementById("bienvenida").style.color = "red";
-    }
-});
-
-
-
     </script>
 </body>
 </html>
