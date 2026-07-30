@@ -138,6 +138,18 @@ def crear_cliente(
             "token_type": "bearer"
         }
         
+        
+"""
+
+recibimos un JSON - > ese JSON trae el mismo JSON en texto plano (como siempre) 
+ Y ADEMAS vine con el token en el header authorization 
+# entonces que pasa? le pasamos una variable llamada - > id_del_profesor en el cual guardaremos el id 
+de ese profesor que esta logueado que aun no sabemos!
+Entonces como todo codigo en python se lee de izquierda a derecha ejecutamos la funcion  revisar_cred_sistema
+y nos movemos al otro modulo
+
+
+"""
 @app.post("/crear_materia", status_code= status.HTTP_200_OK)
 def crear_materia (
      json_enviado : CrearMateria,

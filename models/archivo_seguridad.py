@@ -31,7 +31,7 @@ def emitir_credencial(datos_del_profesor: dict):
     return credencial_plastificada
 
 
-# 3. REVISAR LA CREDENCIAL (Se usa cada vez que pide ver o crear sus clases)
+#
 
 def revisar_credencial_en_sistema(credencial_deslizada: str = Depends(lector_magnetico)):
     try:
