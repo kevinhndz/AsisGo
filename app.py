@@ -10,16 +10,16 @@ import socket
 import os
 
 # ------------------------------------------------------------------
-
-
 # BASE_URL: la direccion que se mete dentro del QR para que el celular
 # del estudiante sepa a donde conectarse.
 #
-# - En produccion defino lo que es
+# - En produccion (deploy real, vendido a la universidad): defines
 #   BASE_URL en el .env del servidor, ej: BASE_URL=https://asisgo.tudominio.com
-#   y listo, nunca mas se toca este archivo al desplegar.
+#   y listo, nunca mas tocas este archivo al desplegar.
 #
-#
+# - En desarrollo local (tu laptop en la misma WiFi que el celular de
+#   prueba), si NO defines BASE_URL, se auto-detecta la IP de la red
+#   local como antes, solo para que sea comodo probar sin configurar nada.
 # ------------------------------------------------------------------
 
 def obtener_ip_local() -> str:
@@ -41,13 +41,13 @@ def obtener_base_url() -> str:
 
 BASE_URL = obtener_base_url()
 
-# Registro de clases en curso: { id_materia: datetime_inicio }
-# Se usa para mostrar la tabla de asistencia en vivo (máx 3 horas)
+
 CLASES_EN_CURSO: dict = {}
 
 from models.almacen import miClaseBase, abrir_puerta_bd, motor
 from models.security_guard import (
-    RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante, MarcarAsistencia
+    RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante, MarcarAsistencia,
+    ConfigurarUbicacionAula
 )
 from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema
 from models.tablas import (
@@ -86,6 +86,7 @@ def mostrar_login(request: Request):
     return templates.TemplateResponse(request, 'login.html')
 
 
+
 @app.get('/sign_up', response_class=HTMLResponse)
 def mostrar_signup(request: Request):
     return templates.TemplateResponse(request, 'signup.html')
@@ -101,6 +102,9 @@ def mostrar_workspace(request: Request):
     return templates.TemplateResponse(request, 'workspace.html')
 
 
+# ============================================================
+# RUTAS REST — autenticacion del profesor
+# ============================================================
 
 @app.post('/login', status_code=status.HTTP_200_OK)
 def login(
@@ -228,7 +232,7 @@ def obtener_mis_materias(
 # RUTAS HTML + REST — inscripcion publica de estudiantes
 # ============================================================
 
-# FIX #3: ruta generica /inscripcion redirige al formulario sin seccion especifica
+
 @app.get('/inscripcion', response_class=HTMLResponse)
 def form_inscripcion_base(request: Request):
     return templates.TemplateResponse(
@@ -317,6 +321,34 @@ def obtener_link_inscripcion(
     return {"seccion": materia.seccion, "ruta": f"/inscribirse/{materia.seccion}"}
 
 
+# Guarda la ubicacion GPS del salon (el profesor la captura una sola vez,
+# estando fisicamente en el aula). Se usa despues para comparar contra la
+# ubicacion de cada estudiante presencial al marcar asistencia.
+@app.post("/materia/{id_materia}/configurar_ubicacion")
+def configurar_ubicacion_aula(
+    id_materia: int,
+    json_enviado: ConfigurarUbicacionAula,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    materia.lat_aula = str(json_enviado.lat)
+    materia.lng_aula = str(json_enviado.lng)
+    base_datos.commit()
+
+    return {"mensaje": "Ubicacion del aula guardada correctamente."}
+
+
 # ============================================================
 # RUTAS REST — QR y asistencia
 # ============================================================
@@ -359,8 +391,7 @@ def qr_pantalla(id_materia: int, request: Request):
     )
 
 
-# ─── Endpoint público para que qr_pantalla.html renueve el QR sin JWT ───
-# Solo genera token si ya existe una sesión activa (el profesor ya abrió el QR)
+
 
 @app.get("/materia/{id_materia}/generar_qr_token_publico")
 def generar_qr_token_publico(id_materia: int):
@@ -435,24 +466,20 @@ def marcar_asistencia(
         TablaMaterias.id_materia == id_materia
     ).first()
 
-    # Solo valida ubicacion si el aula tiene coordenadas configuradas Y el estudiante es presencial
+    # aqui no bloqueamos a nadie por la ubicacion. Solo calculamos una etiqueta:
+    #   True  -> presencial, dentro del radio del aula
+    #   False -> presencial, marco pero esta lejos del aula (posible sospechoso)
+    #   None  -> no aplica (virtual) o no se pudo verificar (sin permiso de
+    #            ubicacion del celular, o el aula aun no tiene coordenadas)
+    dentro_del_rango = None
+
     if estudiante.modalidad == "presencial" and materia.lat_aula and materia.lng_aula:
-        if json_enviado.lat is None or json_enviado.lng is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Necesitamos tu ubicacion para marcar asistencia presencial."
+        if json_enviado.lat is not None and json_enviado.lng is not None:
+            distancia = distancia_metros(
+                json_enviado.lat, json_enviado.lng,
+                float(materia.lat_aula), float(materia.lng_aula)
             )
-
-        distancia = distancia_metros(
-            json_enviado.lat, json_enviado.lng,
-            float(materia.lat_aula), float(materia.lng_aula)
-        )
-
-        if distancia > 50:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Estas a {int(distancia)}m del aula. Debes estar a menos de 50m."
-            )
+            dentro_del_rango = distancia <= 50
 
     hoy = date.today()
     ya_marco = base_datos.query(TablaAsistencia).filter(
@@ -471,7 +498,8 @@ def marcar_asistencia(
         id_materia=id_materia,
         fecha=hoy,
         presente=True,
-        modalidad_usada=estudiante.modalidad
+        modalidad_usada=estudiante.modalidad,
+        dentro_del_rango=dentro_del_rango
     )
     base_datos.add(nueva_asistencia)
     base_datos.commit()
@@ -501,19 +529,26 @@ def obtener_asistencia_hoy(
         TablaEstudiantes.id_materia == id_materia
     ).all()
 
-    ids_presentes_hoy = {
-        a.id_estudiante for a in base_datos.query(TablaAsistencia).filter(
+    registros_de_hoy = {
+        a.id_estudiante: a for a in base_datos.query(TablaAsistencia).filter(
             TablaAsistencia.id_materia == id_materia,
             TablaAsistencia.fecha == hoy,
             TablaAsistencia.presente == True
         ).all()
     }
 
-    presentes = [e for e in todos_los_estudiantes if e.id_estudiante in ids_presentes_hoy]
-    ausentes = [e for e in todos_los_estudiantes if e.id_estudiante not in ids_presentes_hoy]
+    presentes = [e for e in todos_los_estudiantes if e.id_estudiante in registros_de_hoy]
+    ausentes = [e for e in todos_los_estudiantes if e.id_estudiante not in registros_de_hoy]
 
     return {
-        "presentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in presentes],
+        "presentes": [
+            {
+                "nombre": e.nombre,
+                "modalidad": e.modalidad,
+                "dentro_del_rango": registros_de_hoy[e.id_estudiante].dentro_del_rango
+            }
+            for e in presentes
+        ],
         "ausentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in ausentes]
     }
 
