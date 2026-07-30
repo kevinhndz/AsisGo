@@ -54,6 +54,8 @@ class TablaAsistencia(miClaseBase):
     presente = Column(Boolean, default=False)
     modalidad_usada = Column(String(15), nullable=True)
 
+    dentro_del_rango = Column(Boolean, nullable=True, default=None)
+
 
 class TablaGrabaciones(miClaseBase):
     __tablename__ = "grabaciones"
