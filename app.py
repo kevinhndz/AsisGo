@@ -168,7 +168,7 @@ def crear_materia (
             nombre = json_enviado.nombre, 
             seccion = json_enviado.seccion, 
             horario = json_enviado.horario,
-            id_usuario=id_del_profesor
+            id_usuario=id_del_profesor # lo agregamos para que sepamos de que clase es quien
             )
         base_datos.add(nueva_clase)
         base_datos.commit()
