@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Panel - Asis GO+</title>
     <link rel="stylesheet" href="/static/styless.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -23,11 +24,24 @@
         <p id="creado"></p>
     </section>
 
-
     <a href="/workspace" style="font-size: 18px; font-weight: bold;">Ver mis clases registradas →</a>
 
+    <hr>
+    <h3>Código de Asistencia</h3>
+    <p>
+        ID de la materia a probar:
+        <input type="number" id="id_materia_prueba" placeholder="ej: 1" style="width:60px;">
+    </p>
+    <button onclick="abrirModalQR()">Mostrar código QR</button>
+
+    <div id="modal-qr" style="display:none; border:2px solid #333; padding:20px; width:260px; margin-top:15px;">
+        <div id="contenedor-qr"></div>
+        <p id="contador-qr" style="font-size:12px; color:#666;"></p>
+        <button onclick="cerrarModalQR()">Cerrar</button>
+    </div>
+
     <script>
-    // El JS escucha el envío del formulario de materias
+   
     document.getElementById("formulario-materias").addEventListener("submit", async function (e){
         e.preventDefault();
 
@@ -35,10 +49,8 @@
         const seccion = document.getElementById("seccion").value;
         const horario = document.getElementById("horario").value;
 
-        // 1. Abrimos  el token JWT guardado en el login
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
-        // 2. Hacemos el fetch mandando los datos y el token en el sobre de seguridad (headers)
         const respuesta = await fetch("http://127.0.0.1:8000/crear_materia", {
             method: "POST",
             headers: { 
@@ -58,6 +70,65 @@
             document.getElementById("creado").style.color = "red";
         }
     });
+
+    
+    let intervaloQR = null;
+    let objetoQR = null;
+
+    async function pedirTokenYPintarQR(idMateria) {
+        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
+
+        const respuesta = await fetch(`http://127.0.0.1:8000/materia/${idMateria}/generar_qr_token`, {
+            method: "GET",
+            headers: { "Authorization": "Bearer " + tokenGuardado }
+        });
+
+        if (!respuesta.ok) {
+            document.getElementById("contenedor-qr").innerHTML = "<p>Error generando el código.</p>";
+            return;
+        }
+
+        const datos = await respuesta.json();
+        const urlParaElQR = `http://127.0.0.1:8000/marcar?id_materia=${idMateria}&token=${datos.token}`;
+
+        const contenedor = document.getElementById("contenedor-qr");
+        contenedor.innerHTML = "";
+
+        objetoQR = new QRCode(contenedor, {
+            text: urlParaElQR,
+            width: 220,
+            height: 220
+        });
+
+        // contador visual simple de 15 a 0
+        let segundos = 15;
+        document.getElementById("contador-qr").innerText = `Se renueva en ${segundos}s`;
+        const cuentaAtras = setInterval(() => {
+            segundos--;
+            document.getElementById("contador-qr").innerText = `Se renueva en ${segundos}s`;
+            if (segundos <= 0) clearInterval(cuentaAtras);
+        }, 1000);
+    }
+
+    function abrirModalQR() {
+        const idMateria = document.getElementById("id_materia_prueba").value;
+        if (!idMateria) {
+            alert("Escribe el ID de la materia primero.");
+            return;
+        }
+
+        document.getElementById("modal-qr").style.display = "block";
+        pedirTokenYPintarQR(idMateria);
+        intervaloQR = setInterval(() => pedirTokenYPintarQR(idMateria), 15000);
+    }
+
+    function cerrarModalQR() {
+        document.getElementById("modal-qr").style.display = "none";
+        if (intervaloQR) {
+            clearInterval(intervaloQR);
+            intervaloQR = null;
+        }
+    }
     </script>
 </body>
 </html>
