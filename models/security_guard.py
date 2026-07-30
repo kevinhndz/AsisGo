@@ -34,3 +34,8 @@ class MarcarAsistencia(BaseModel):
     numero_cuenta: str = Field(min_length=4, max_length=20)
     lat: Optional[float] = None
     lng: Optional[float] = None
+
+
+class ConfigurarUbicacionAula(BaseModel):
+    lat: float
+    lng: float
