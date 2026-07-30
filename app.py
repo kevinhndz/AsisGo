@@ -5,8 +5,8 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from models.almacen import miClaseBase,abrir_puerta_bd,motor
-from models.security_guard import BaseModel, RevisarDatos, CrearCliente, CrearMateria
-from models.tablas import TablaUsuarios, TablaClientes, TablaMaterias
+from models.security_guard import BaseModel, RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante
+from models.tablas import TablaUsuarios, TablaClientes, TablaMaterias, TablaEstudiantes
 from sqlalchemy.orm import Session
 from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema
 
@@ -184,5 +184,85 @@ def obtener_mis_materias(
     materias_del_profe = base_datos.query(TablaMaterias).filter(TablaMaterias.id_usuario == id_del_profesor).all()
     return materias_del_profe
     
+
+@app.get('/inscribirse/{seccion}', response_class=HTMLResponse)
+def form_inscripcion(seccion: str, request: Request):
     
+    return templates.TemplateResponse(
+        request,
+        'inscripcion.html',
+        {"seccion": seccion}
+    )
+
+
+@app.post('/inscribirse/{seccion}', status_code=status.HTTP_200_OK)
+def guardar_inscripcion(
+    seccion: str,
+    json_enviado: CrearEstudiante,
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia_encontrada = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.seccion == seccion
+    ).first()
+
+    if materia_encontrada is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"La seccion {seccion} no existe. Revisa el link con tu profesor."
+        )
+
+
+    cuenta_existente = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.numero_cuenta == json_enviado.numero_cuenta
+    ).first()
+
+    if cuenta_existente is not None:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"El numero de cuenta {json_enviado.numero_cuenta} ya esta registrado."
+        )
+
+
+    modalidad_limpia = json_enviado.modalidad.strip().lower()
+    if modalidad_limpia not in ("presencial", "virtual"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Modalidad debe ser 'presencial' o 'virtual'."
+        )
+
+    
+    nuevo_estudiante = TablaEstudiantes(
+        nombre=json_enviado.nombre,
+        telefono=json_enviado.telefono,
+        correo=json_enviado.correo,
+        numero_cuenta=json_enviado.numero_cuenta,
+        modalidad=modalidad_limpia,
+        id_materia=materia_encontrada.id_materia
+    )
+    base_datos.add(nuevo_estudiante)
+    base_datos.commit()
+
+    return {
+        "mensaje": f"¡Listo {json_enviado.nombre}! Quedaste inscrito en {materia_encontrada.nombre}."
+    }
+
+
+@app.get('/materia/{id_materia}/link_inscripcion')
+def obtener_link_inscripcion(
+    id_materia: int,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor  # <-- solo si es SU materia
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
   
+    return {"seccion": materia.seccion, "ruta": f"/inscribirse/{materia.seccion}"}

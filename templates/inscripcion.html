@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscripción a la clase</title>
+    <link rel="stylesheet" href="/static/styless.css">
+</head>
+<body>
+
+    <h1>Inscríbete a la clase</h1>
+    <p>Sección: <strong id="mostrar-seccion"></strong></p>
+
+    <form id="formulario-inscripcion">
+        <div>
+            <label>Tu Nombre:</label>
+            <input type="text" id="nombre" required>
+        </div>
+        <br>
+        <div>
+            <label>Tu Correo:</label>
+            <input type="email" id="correo" required>
+        </div>
+        <br>
+        <div>
+            <label>Tu Teléfono:</label>
+            <input type="text" id="telefono" required>
+        </div>
+        <br>
+        <div>
+            <label>Tu Número de Cuenta:</label>
+            <input type="text" id="numero_cuenta" required>
+        </div>
+        <br>
+        <div>
+            <label>Modalidad:</label>
+            <select id="modalidad" required>
+                <option value="">-- Selecciona --</option>
+                <option value="presencial">Presencial</option>
+                <option value="virtual">Virtual</option>
+            </select>
+        </div>
+        <br>
+        <button type="submit">Inscribirme</button>
+    </form>
+
+    <p id="mensaje"></p>
+
+    <script>
+
+    const partesURL = window.location.pathname.split("/");
+    const seccion = partesURL[partesURL.length - 1];
+    document.getElementById("mostrar-seccion").innerText = seccion;
+
+    document.getElementById("formulario-inscripcion").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const nombre = document.getElementById("nombre").value;
+        const correo = document.getElementById("correo").value;
+        const telefono = document.getElementById("telefono").value;
+        const numero_cuenta = document.getElementById("numero_cuenta").value;
+        const modalidad = document.getElementById("modalidad").value;
+
+        // 2. Mandamos el POST a la misma seccion que estamos viendo en la URL
+        const respuesta = await fetch(`/inscribirse/${seccion}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre, correo, telefono, numero_cuenta, modalidad })
+        });
+
+        const datos = await respuesta.json();
+        const mensaje = document.getElementById("mensaje");
+
+        if (respuesta.ok) {
+            mensaje.innerText = datos.mensaje;
+            mensaje.style.color = "green";
+            document.getElementById("formulario-inscripcion").reset();
+        } else {
+            mensaje.innerText = "Error: " + datos.detail;
+            mensaje.style.color = "red";
+        }
+    });
+    </script>
+</body>
+</html>
