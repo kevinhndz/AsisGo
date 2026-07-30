@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Marcar Asistencia</title>
+    <link rel="stylesheet" href="/static/styless.css">
+</head>
+<body>
+
+    <h1>Marcar Asistencia</h1>
+    <p id="estado-ubicacion">Solicitando tu ubicación...</p>
+
+    <form id="formulario-asistencia" style="display:none;">
+        <div>
+            <label>Tu Número de Cuenta:</label>
+            <input type="text" id="numero_cuenta" required>
+        </div>
+        <br>
+        <button type="submit">Marcar Asistencia</button>
+    </form>
+
+    <p id="mensaje"></p>
+
+    <script>
+    
+    const parametros = new URLSearchParams(window.location.search);
+    const idMateria = parametros.get("id_materia");
+    const token = parametros.get("token");
+
+    let ubicacion = { lat: null, lng: null };
+
+   
+    navigator.geolocation.getCurrentPosition(
+        function (posicion) {
+            ubicacion.lat = posicion.coords.latitude;
+            ubicacion.lng = posicion.coords.longitude;
+            document.getElementById("estado-ubicacion").innerText = "Ubicación obtenida ✓";
+            document.getElementById("formulario-asistencia").style.display = "block";
+        },
+        function (error) {
+            // Si el estudiante niega el permiso, igual dejamos intentar
+            // (por si es modalidad virtual, el backend no le va a pedir lat/lng)
+            document.getElementById("estado-ubicacion").innerText =
+                "No se pudo obtener tu ubicación. Si eres virtual, puedes continuar igual.";
+            document.getElementById("formulario-asistencia").style.display = "block";
+        }
+    );
+
+    document.getElementById("formulario-asistencia").addEventListener("submit", async function (e) {
+        e.preventDefault();
+
+        const numero_cuenta = document.getElementById("numero_cuenta").value;
+
+        const respuesta = await fetch(`/marcar_asistencia?id_materia=${idMateria}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                token: token,
+                numero_cuenta: numero_cuenta,
+                lat: ubicacion.lat,
+                lng: ubicacion.lng
+            })
+        });
+
+        const datos = await respuesta.json();
+        const mensaje = document.getElementById("mensaje");
+
+        if (respuesta.ok) {
+            mensaje.innerText = datos.mensaje;
+            mensaje.style.color = "green";
+            document.getElementById("formulario-asistencia").style.display = "none";
+        } else {
+            mensaje.innerText = "Error: " + datos.detail;
+            mensaje.style.color = "red";
+        }
+    });
+    </script>
+</body>
+</html>
