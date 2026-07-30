@@ -14,16 +14,16 @@ PORT = os.getenv("DB_PORT")
 NAME = os.getenv("DB_NAME")
 
 #
-RUTA_ALMACEN = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}"
+DATABASE_URL = f"mysql+pymysql://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}"
 
 
-motor = create_engine(RUTA_ALMACEN)
-FabricaLLaves = sessionmaker(bind=motor)
+motor = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(bind=motor)
 miClaseBase = declarative_base()
 
 
 def abrir_puerta_bd():
-    base_datos = FabricaLLaves()
+    base_datos = SessionLocal()
     try:
         yield base_datos
     finally:

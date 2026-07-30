@@ -8,6 +8,8 @@ load_dotenv()
 
 
 FIRMA_DEL_DIRECTOR = os.getenv("FIRMA_DEL_DIRECTOR")
+if FIRMA_DEL_DIRECTOR is None:
+    raise ValueError("ERROR CRITICO: FIRMA_DEL_DIRECTOR no esta definida en el archivo .env")
 HOLOGRAMA_DE_SEGURIDAD = "HS256"
 
 lector_magnetico = OAuth2PasswordBearer(tokenUrl="login")
@@ -18,9 +20,9 @@ def emitir_credencial(datos_del_profesor: dict):
     
     datos_a_imprimir = datos_del_profesor.copy()
     
-    fin_del_semestre = datetime.utcnow() + timedelta(hours=2)
+    tiempo_expiracion = datetime.utcnow() + timedelta(hours=2)
     
-    datos_a_imprimir.update({"exp": fin_del_semestre})
+    datos_a_imprimir.update({"exp": tiempo_expiracion})
     
     credencial_plastificada = jwt.encode(
         datos_a_imprimir, 

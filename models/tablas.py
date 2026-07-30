@@ -6,7 +6,7 @@ class TablaUsuarios(miClaseBase):
 
     id_usuario = Column(Integer, primary_key=True)
     usuario = Column(String(50), unique=True)
-    contrasena = Column(String(30))
+    contrasena = Column(String(255))
 
 
 class TablaClientes(miClaseBase):

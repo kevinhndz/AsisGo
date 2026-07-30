@@ -1,28 +1,27 @@
-from fastapi import FastAPI, HTTPException, status, Depends, Request
+from fastapi import FastAPI, HTTPException, status, Depends, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-
-from models.almacen import miClaseBase,abrir_puerta_bd,motor
-from models.security_guard import BaseModel, RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante
-from models.tablas import TablaUsuarios, TablaClientes, TablaMaterias, TablaEstudiantes
 from sqlalchemy.orm import Session
-from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema
-
+from datetime import date, datetime
 from math import radians, sin, cos, sqrt, atan2
-from datetime import date
-from models.sesion_qr import generar_nuevo_token, token_es_valido
-from models.security_guard import MarcarAsistencia
-from models.tablas import TablaAsistencia
 
-import os
-import smtplib
-from email.mime.text import MIMEText
+from models.almacen import miClaseBase, abrir_puerta_bd, motor
+from models.security_guard import (
+    RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante, MarcarAsistencia
+)
+from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema
+from models.tablas import (
+    TablaUsuarios, TablaClientes, TablaMaterias, TablaEstudiantes,
+    TablaAsistencia, TablaGrabaciones
+)
+from models.sesion_qr import generar_nuevo_token, token_es_valido, SESIONES_QR_ACTIVAS
+from models.correo import enviar_correo_grabacion
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
-app.mount("/static",StaticFiles(directory="static"))
+app.mount("/static", StaticFiles(directory="static"))
 
 app.add_middleware(
     CORSMiddleware,
@@ -32,169 +31,165 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# sino existe creala
-miClaseBase.metadata.create_all(bind = motor)
+miClaseBase.metadata.create_all(bind=motor)
 
 
-#RUTA templates
+# ============================================================
+# RUTAS HTML — templating
+# ============================================================
 
 @app.get('/', response_class=HTMLResponse)
 def home(request: Request):
-    return templates.TemplateResponse(request,'home.html')
+    return templates.TemplateResponse(request, 'home.html')
+
 
 @app.get('/iniciar_sesion', response_class=HTMLResponse)
-def mostrar_login(request:Request):
+def mostrar_login(request: Request):
     return templates.TemplateResponse(request, 'login.html')
 
-@app.get('/crear_cliente', response_class= HTMLResponse)
-def mostrar_sign_up_page(request: Request):
-    return templates.TemplateResponse(request,'signup.html')
 
 @app.get('/interface', response_class=HTMLResponse)
 def mostrar_interface(request: Request):
-    return templates.TemplateResponse(request,'interface.html')
+    return templates.TemplateResponse(request, 'interface.html')
+
 
 @app.get('/workspace', response_class=HTMLResponse)
 def mostrar_workspace(request: Request):
-    return templates.TemplateResponse(request,'workspace.html')
+    return templates.TemplateResponse(request, 'workspace.html')
 
 
-
-
-# RUTAS REST API
+# ============================================================
+# RUTAS REST — autenticacion del profesor
+# ============================================================
 
 @app.post('/login', status_code=status.HTTP_200_OK)
 def login(
     json_recibido: RevisarDatos,
     base_datos: Session = Depends(abrir_puerta_bd)
 ):
-    user_que_vino = base_datos.query(TablaUsuarios).filter(TablaUsuarios.usuario == json_recibido.usuario).first()
-    
+    user_que_vino = base_datos.query(TablaUsuarios).filter(
+        TablaUsuarios.usuario == json_recibido.usuario
+    ).first()
+
     if user_que_vino is None:
-        # BUFIX (Error #1): pedian que si el usuario no existe diga
-        # "Usuario no encontrado" en vez de "Usuario o contraseña incorrectos"
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no encontrado"
         )
-    
+
     if user_que_vino.contrasena != json_recibido.contrasena:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Contrasena Incorrecta!"
+            detail="Contrasena incorrecta!"
         )
-    
-    #Aqui empieza la Autenticacion
-    
-    #Step 1 --> Cree un hashmap para mandar a crear un nuevo Token
+
     diccionario_profesor = {
-        "id_usuario":user_que_vino.id_usuario,
+        "id_usuario": user_que_vino.id_usuario,
         "usuario": user_que_vino.usuario
     }
-    
-    #Step #2 --> mandar a llamr emituir credecial para mandar el JSON a revision
-    #PSDTA: Esta funcion lo que hace es devolverme mi JWT secreto.
+
     mi_token = emitir_credencial(diccionario_profesor)
-    
-    #
+
     return {
-        
-        "mensaje":"Bienvenido",
-        "token":mi_token,  # aqui lo agrego
-        "token_type":"bearer"
-    
+        "mensaje": "Bienvenido",
+        "token": mi_token,
+        "token_type": "bearer"
     }
-    
-    
-    
-    
-    
-        
+
+
 @app.post('/sign_up', status_code=status.HTTP_200_OK)
 def crear_cliente(
-     json_enviado: CrearCliente,
-     base_datos: Session = Depends(abrir_puerta_bd)
+    json_enviado: CrearCliente,
+    base_datos: Session = Depends(abrir_puerta_bd)
 ):
-    usuario_enviado = base_datos.query(TablaUsuarios).filter(TablaUsuarios.usuario == json_enviado.usuario).first()
-    
-    if usuario_enviado is not None:
+    usuario_existente = base_datos.query(TablaUsuarios).filter(
+        TablaUsuarios.usuario == json_enviado.usuario
+    ).first()
+
+    if usuario_existente is not None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Usuario: {json_enviado.usuario} ya esta siendo utilizado. Crea otro! "
+            detail=f"Usuario {json_enviado.usuario} ya esta siendo utilizado."
         )
-    else:
-        nuevo_usuario = TablaUsuarios(usuario=json_enviado.usuario, contrasena=json_enviado.contrasena)
-        base_datos.add(nuevo_usuario)
-        base_datos.flush()
-        
-        nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, correo = json_enviado.correo, id_usuario=nuevo_usuario.id_usuario)
-        base_datos.add(nuevo_cliente)
-        base_datos.commit()
-       
-        # Creamos su token de bienvenida al registrarse
-        diccionario_profesor = {
-            "id_usuario": nuevo_usuario.id_usuario,
-            "usuario": nuevo_usuario.usuario
-        }
-        mi_token = emitir_credencial(diccionario_profesor)
-        
-        # Devolvemos el token de forma limpia
-        return {
-            "mensaje": f" ¡Bienvenido {json_enviado.usuario}!",
-            "token": mi_token,
-            "token_type": "bearer"
-        }
-        
-        
-"""
 
-recibimos un JSON - > ese JSON trae el mismo JSON en texto plano (como siempre) 
- Y ADEMAS vine con el token en el header authorization 
-# entonces que pasa? le pasamos una variable llamada - > id_del_profesor en el cual guardaremos el id 
-de ese profesor que esta logueado que aun no sabemos!
-Entonces como todo codigo en python se lee de izquierda a derecha ejecutamos la funcion  revisar_cred_sistema
-y nos movemos al otro modulo
+    nuevo_usuario = TablaUsuarios(
+        usuario=json_enviado.usuario,
+        contrasena=json_enviado.contrasena
+    )
+    base_datos.add(nuevo_usuario)
+    base_datos.flush()
+
+    nuevo_cliente = TablaClientes(
+        nombre=json_enviado.nombre,
+        telefono=json_enviado.telefono,
+        correo=json_enviado.correo,
+        id_usuario=nuevo_usuario.id_usuario
+    )
+    base_datos.add(nuevo_cliente)
+    base_datos.commit()
+
+    diccionario_profesor = {
+        "id_usuario": nuevo_usuario.id_usuario,
+        "usuario": nuevo_usuario.usuario
+    }
+    mi_token = emitir_credencial(diccionario_profesor)
+
+    return {
+        "mensaje": f"Bienvenido {json_enviado.usuario}!",
+        "token": mi_token,
+        "token_type": "bearer"
+    }
 
 
-"""
-@app.post("/crear_materia", status_code= status.HTTP_200_OK)
-def crear_materia (
-     json_enviado : CrearMateria,
-     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
-     base_datos : Session = Depends(abrir_puerta_bd)
+# ============================================================
+# RUTAS REST — CRUD de materias (solo profesor logueado)
+# ============================================================
+
+@app.post("/crear_materia", status_code=status.HTTP_200_OK)
+def crear_materia(
+    json_enviado: CrearMateria,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
 ):
-    datos_enviados = base_datos.query(TablaMaterias).filter(TablaMaterias.seccion == json_enviado.seccion).first()
-    
+    datos_enviados = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.seccion == json_enviado.seccion
+    ).first()
+
     if datos_enviados is not None:
         raise HTTPException(
-            status_code= status.HTTP_400_BAD_REQUEST,
-            detail= f"La seccion: {datos_enviados.seccion} ya esta registrada."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"La seccion {datos_enviados.seccion} ya esta registrada."
         )
-    else:
-        nueva_clase = TablaMaterias(
-            nombre = json_enviado.nombre, 
-            seccion = json_enviado.seccion, 
-            horario = json_enviado.horario,
-            id_usuario=id_del_profesor # lo agregamos para que sepamos de que clase es quien
-            )
-        base_datos.add(nueva_clase)
-        base_datos.commit()
-        
-        return {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
-    
-    
+
+    nueva_clase = TablaMaterias(
+        nombre=json_enviado.nombre,
+        seccion=json_enviado.seccion,
+        horario=json_enviado.horario,
+        id_usuario=id_del_profesor
+    )
+    base_datos.add(nueva_clase)
+    base_datos.commit()
+
+    return {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
+
+
 @app.get("/mis_materias")
 def obtener_mis_materias(
     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
     base_datos: Session = Depends(abrir_puerta_bd)
 ):
-    materias_del_profe = base_datos.query(TablaMaterias).filter(TablaMaterias.id_usuario == id_del_profesor).all()
+    materias_del_profe = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_usuario == id_del_profesor
+    ).all()
     return materias_del_profe
-    
+
+
+# ============================================================
+# RUTAS REST — inscripcion publica de estudiantes
+# ============================================================
 
 @app.get('/inscribirse/{seccion}', response_class=HTMLResponse)
 def form_inscripcion(seccion: str, request: Request):
-    
     return templates.TemplateResponse(
         request,
         'inscripcion.html',
@@ -215,9 +210,8 @@ def guardar_inscripcion(
     if materia_encontrada is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"La seccion {seccion} no existe. Revisa el link con tu profesor."
+            detail=f"La seccion {seccion} no existe."
         )
-
 
     cuenta_existente = base_datos.query(TablaEstudiantes).filter(
         TablaEstudiantes.numero_cuenta == json_enviado.numero_cuenta
@@ -229,7 +223,6 @@ def guardar_inscripcion(
             detail=f"El numero de cuenta {json_enviado.numero_cuenta} ya esta registrado."
         )
 
-
     modalidad_limpia = json_enviado.modalidad.strip().lower()
     if modalidad_limpia not in ("presencial", "virtual"):
         raise HTTPException(
@@ -237,7 +230,6 @@ def guardar_inscripcion(
             detail="Modalidad debe ser 'presencial' o 'virtual'."
         )
 
-    
     nuevo_estudiante = TablaEstudiantes(
         nombre=json_enviado.nombre,
         telefono=json_enviado.telefono,
@@ -250,7 +242,7 @@ def guardar_inscripcion(
     base_datos.commit()
 
     return {
-        "mensaje": f"¡Listo {json_enviado.nombre}! Quedaste inscrito en {materia_encontrada.nombre}."
+        "mensaje": f"Listo {json_enviado.nombre}! Quedaste inscrito en {materia_encontrada.nombre}."
     }
 
 
@@ -262,7 +254,7 @@ def obtener_link_inscripcion(
 ):
     materia = base_datos.query(TablaMaterias).filter(
         TablaMaterias.id_materia == id_materia,
-        TablaMaterias.id_usuario == id_del_profesor  # <-- solo si es SU materia
+        TablaMaterias.id_usuario == id_del_profesor
     ).first()
 
     if materia is None:
@@ -271,29 +263,19 @@ def obtener_link_inscripcion(
             detail="Esa materia no existe o no te pertenece."
         )
 
-  
     return {"seccion": materia.seccion, "ruta": f"/inscribirse/{materia.seccion}"}
 
 
+# ============================================================
+# RUTAS REST — QR y asistencia
+# ============================================================
 
-def distancia_metros(lat1, lng1, lat2, lng2) -> float:
-    
-    R = 6371000  # radio de la Tierra en metros
-    dlat = radians(lat2 - lat1)
-    dlng = radians(lng2 - lng1)
-    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlng / 2) ** 2
-    return R * 2 * atan2(sqrt(a), sqrt(1 - a))
-
-
-# --- RUTA PROTEGIDA: el profesor pide un token nuevo cada 15s ---
-# El frontend del modal QR llama esto en un setInterval(..., 15000)
 @app.get("/materia/{id_materia}/generar_qr_token")
 def generar_qr_token(
     id_materia: int,
     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
     base_datos: Session = Depends(abrir_puerta_bd)
 ):
-    
     materia = base_datos.query(TablaMaterias).filter(
         TablaMaterias.id_materia == id_materia,
         TablaMaterias.id_usuario == id_del_profesor
@@ -306,9 +288,7 @@ def generar_qr_token(
         )
 
     resultado = generar_nuevo_token(id_materia)
-   
     return resultado
-
 
 
 @app.get("/marcar", response_class=HTMLResponse)
@@ -320,20 +300,26 @@ def form_marcar_asistencia(id_materia: int, token: str, request: Request):
     )
 
 
+def distancia_metros(lat1, lng1, lat2, lng2) -> float:
+    R = 6371000
+    dlat = radians(lat2 - lat1)
+    dlng = radians(lng2 - lng1)
+    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlng / 2) ** 2
+    return R * 2 * atan2(sqrt(a), sqrt(1 - a))
+
+
 @app.post("/marcar_asistencia")
 def marcar_asistencia(
     id_materia: int,
     json_enviado: MarcarAsistencia,
     base_datos: Session = Depends(abrir_puerta_bd)
 ):
-    # Paso 1: el token tiene que ser el vigente ahora mismo para esa materia
     if not token_es_valido(id_materia, json_enviado.token):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="El codigo QR ya expiro. Pide al profesor que muestre uno nuevo."
         )
 
-    # Paso 2: el estudiante debe existir y estar inscrito en ESA materia
     estudiante = base_datos.query(TablaEstudiantes).filter(
         TablaEstudiantes.numero_cuenta == json_enviado.numero_cuenta,
         TablaEstudiantes.id_materia == id_materia
@@ -345,7 +331,6 @@ def marcar_asistencia(
             detail="Tu numero de cuenta no esta inscrito en esta clase."
         )
 
-    # Paso 3: si es presencial, validamos el radio de 50m con Haversine
     if estudiante.modalidad == "presencial":
         materia = base_datos.query(TablaMaterias).filter(
             TablaMaterias.id_materia == id_materia
@@ -374,7 +359,6 @@ def marcar_asistencia(
                 detail=f"Estas a {int(distancia)}m del aula. Debes estar a menos de 50m."
             )
 
-   
     hoy = date.today()
     ya_marco = base_datos.query(TablaAsistencia).filter(
         TablaAsistencia.id_estudiante == estudiante.id_estudiante,
@@ -386,7 +370,6 @@ def marcar_asistencia(
             status_code=status.HTTP_409_CONFLICT,
             detail="Ya marcaste tu asistencia hoy."
         )
-
 
     nueva_asistencia = TablaAsistencia(
         id_estudiante=estudiante.id_estudiante,
@@ -435,38 +418,15 @@ def obtener_asistencia_hoy(
     ausentes = [e for e in todos_los_estudiantes if e.id_estudiante not in ids_presentes_hoy]
 
     return {
-        "presentes": [{"nombre": e.nombre, "modalidad": e.modalidad, "numero_cuenta": e.numero_cuenta} for e in presentes],
-        "ausentes": [{"nombre": e.nombre, "modalidad": e.modalidad, "numero_cuenta": e.numero_cuenta} for e in ausentes]
+        "presentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in presentes],
+        "ausentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in ausentes]
     }
-    
-
-@app.post("/materia/{id_materia}/configurar_ubicacion")
-def configurar_ubicacion(
-    id_materia: int,
-    lat: float,
-    lng: float,
-    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
-    base_datos: Session = Depends(abrir_puerta_bd)
-):
-    materia = base_datos.query(TablaMaterias).filter(
-        TablaMaterias.id_materia == id_materia,
-        TablaMaterias.id_usuario == id_del_profesor
-    ).first()
-
-    if materia is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Esa materia no existe o no te pertenece."
-        )
-
-    materia.lat_aula = str(lat)
-    materia.lng_aula = str(lng)
-    base_datos.commit()
-
-    return {"mensaje": "Ubicación del aula guardada correctamente."}
 
 
-# --- Trae la lista completa de estudiantes de una materia CON sus faltas calculadas ---
+# ============================================================
+# RUTAS REST — CRUD de estudiantes
+# ============================================================
+
 @app.get("/materia/{id_materia}/estudiantes")
 def listar_estudiantes_con_faltas(
     id_materia: int,
@@ -490,8 +450,6 @@ def listar_estudiantes_con_faltas(
 
     resultado = []
     for est in estudiantes:
-        # Contamos cuantas filas de asistencia tiene este estudiante
-        # marcadas como presente=False. Eso es "las faltas".
         total_faltas = base_datos.query(TablaAsistencia).filter(
             TablaAsistencia.id_estudiante == est.id_estudiante,
             TablaAsistencia.presente == False
@@ -510,7 +468,6 @@ def listar_estudiantes_con_faltas(
     return resultado
 
 
-# --- Editar los datos de un estudiante (nombre, correo, modalidad, etc) ---
 @app.put("/estudiante/{id_estudiante}")
 def editar_estudiante(
     id_estudiante: int,
@@ -528,8 +485,6 @@ def editar_estudiante(
             detail="Ese estudiante no existe."
         )
 
-    # Verificamos que el estudiante pertenezca a una materia de ESTE profesor,
-    # para que un profesor no pueda editar estudiantes de otro.
     materia = base_datos.query(TablaMaterias).filter(
         TablaMaterias.id_materia == estudiante.id_materia,
         TablaMaterias.id_usuario == id_del_profesor
@@ -551,7 +506,6 @@ def editar_estudiante(
     return {"mensaje": f"{estudiante.nombre} actualizado correctamente."}
 
 
-# --- Eliminar un estudiante del curso ---
 @app.delete("/estudiante/{id_estudiante}")
 def eliminar_estudiante(
     id_estudiante: int,
@@ -589,13 +543,39 @@ def eliminar_estudiante(
     return {"mensaje": "Estudiante eliminado del curso."}
 
 
-
-@app.put("/asistencia/manual")
-def editar_asistencia_manual(
-    id_estudiante: int,
+@app.post("/materia/{id_materia}/configurar_ubicacion")
+def configurar_ubicacion(
     id_materia: int,
-    fecha: date,
-    presente: bool,
+    lat: float,
+    lng: float,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    materia.lat_aula = str(lat)
+    materia.lng_aula = str(lng)
+    base_datos.commit()
+
+    return {"mensaje": "Ubicacion del aula guardada correctamente."}
+
+
+# ============================================================
+# RUTAS REST — cierre de clase y grabacion
+# ============================================================
+
+@app.post("/materia/{id_materia}/cerrar_clase")
+def cerrar_clase(
+    id_materia: int,
     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
     base_datos: Session = Depends(abrir_puerta_bd)
 ):
@@ -610,41 +590,49 @@ def editar_asistencia_manual(
             detail="Esa materia no te pertenece."
         )
 
-    fila = base_datos.query(TablaAsistencia).filter(
-        TablaAsistencia.id_estudiante == id_estudiante,
-        TablaAsistencia.id_materia == id_materia,
-        TablaAsistencia.fecha == fecha
-    ).first()
+    hoy = date.today()
+    todos_los_estudiantes = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_materia == id_materia
+    ).all()
 
-    if fila is None:
-        
-        fila = TablaAsistencia(
-            id_estudiante=id_estudiante,
-            id_materia=id_materia,
-            fecha=fecha,
-            presente=presente,
-            modalidad_usada="manual"
-        )
-        base_datos.add(fila)
-    else:
-        fila.presente = presente
+    ids_ya_registrados_hoy = {
+        a.id_estudiante for a in base_datos.query(TablaAsistencia).filter(
+            TablaAsistencia.id_materia == id_materia,
+            TablaAsistencia.fecha == hoy
+        ).all()
+    }
+
+    contador_ausentes = 0
+    for estudiante in todos_los_estudiantes:
+        if estudiante.id_estudiante not in ids_ya_registrados_hoy:
+            nueva_falta = TablaAsistencia(
+                id_estudiante=estudiante.id_estudiante,
+                id_materia=id_materia,
+                fecha=hoy,
+                presente=False,
+                modalidad_usada=estudiante.modalidad
+            )
+            base_datos.add(nueva_falta)
+            contador_ausentes += 1
 
     base_datos.commit()
-    return {"mensaje": "Asistencia actualizada correctamente."}
+
+    if id_materia in SESIONES_QR_ACTIVAS:
+        del SESIONES_QR_ACTIVAS[id_materia]
+
+    return {
+        "mensaje": f"Clase cerrada. {contador_ausentes} estudiante(s) marcado(s) como ausente."
+    }
 
 
-# --- Enviar enlace de grabación de Teams a los estudiantes de la materia ---
-class EnviarVideoRequest(BaseModel):
-    video_url: str
-
-@app.post("/materia/{id_materia}/enviar_video")
-def enviar_video_clase(
+@app.post("/materia/{id_materia}/publicar_grabacion")
+def publicar_grabacion(
     id_materia: int,
-    datos_envio: EnviarVideoRequest,
+    url_video: str,
+    background_tasks: BackgroundTasks,
     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
     base_datos: Session = Depends(abrir_puerta_bd)
 ):
-    # Verificar que la materia le pertenezca al profesor
     materia = base_datos.query(TablaMaterias).filter(
         TablaMaterias.id_materia == id_materia,
         TablaMaterias.id_usuario == id_del_profesor
@@ -653,63 +641,26 @@ def enviar_video_clase(
     if materia is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Esa materia no te pertenece o no existe."
+            detail="Esa materia no te pertenece."
         )
 
-    # Buscar estudiantes de la materia
+    nueva_grabacion = TablaGrabaciones(
+        id_materia=id_materia,
+        url_video=url_video,
+        fecha_publicacion=datetime.utcnow()
+    )
+    base_datos.add(nueva_grabacion)
+    base_datos.commit()
+
     estudiantes = base_datos.query(TablaEstudiantes).filter(
         TablaEstudiantes.id_materia == id_materia
     ).all()
+    lista_correos = [e.correo for e in estudiantes]
 
-    if not estudiantes:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No hay estudiantes inscritos en esta materia para enviarles el video."
-        )
-
-    correos = [est.correo for est in estudiantes if est.correo]
-    if not correos:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ninguno de los estudiantes inscritos tiene correo registrado."
-        )
-
-    # Configuración de email desde variables de entorno con fallbacks
-    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USER", "")
-    smtp_password = os.getenv("SMTP_PASSWORD", "")
-
-    # Mensaje a enviar
-    cuerpo = (
-        f"Hola, estudiante.\n\n"
-        f"El profesor ha compartido el enlace de la clase grabada en Teams para la materia '{materia.nombre}':\n\n"
-        f"{datos_envio.video_url}\n\n"
-        f"Saludos."
+    background_tasks.add_task(
+        enviar_correo_grabacion, lista_correos, materia.nombre, url_video
     )
-    msg = MIMEText(cuerpo)
-    msg['Subject'] = f"Grabacion de Teams: {materia.nombre}"
-    msg['From'] = smtp_user if smtp_user else "asisgo-no-reply@uph.edu"
-    msg['To'] = ", ".join(correos)
-
-    # Si hay credenciales de SMTP configuradas, intentar el envío
-    if smtp_user and smtp_password:
-        try:
-            with smtplib.SMTP(smtp_host, smtp_port) as server:
-                server.starttls()
-                server.login(smtp_user, smtp_password)
-                server.sendmail(msg['From'], correos, msg.as_string())
-        except Exception as e:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Error al enviar correo SMTP: {str(e)}"
-            )
-    else:
-        # Modo debug/fallback si no hay servidor SMTP configurado
-        print(f"SMTP no configurado en .env. Se simulo el envio a: {correos}. Contenido: {datos_envio.video_url}")
 
     return {
-        "mensaje": f"Enlace del video enviado exitosamente a {len(correos)} estudiantes.",
-        "correos": correos,
-        "simulado": not (smtp_user and smtp_password)
+        "mensaje": f"Grabacion publicada. Enviando correo a {len(lista_correos)} estudiante(s)."
     }
