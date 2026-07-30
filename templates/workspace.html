@@ -2,422 +2,59 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mis Clases - Workspace</title>
+    <title>Mis Clases</title>
     <link rel="stylesheet" href="/static/styless.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        .dashboard-container {
-            width: 95%;
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 25px;
-            background: rgba(23, 23, 23, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 1rem;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-            color: #ece1d1;
-        }
-        
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-        
-        @media (max-width: 768px) {
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .card {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .card h3 {
-            margin-top: 0;
-            border-bottom: 1px solid rgba(255, 209, 101, 0.3);
-            padding-bottom: 8px;
-            color: #ffd165;
-            font-size: 1.25rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-top: 10px;
-        }
-
-        table.custom-table {
-            width: 100%;
-            border-collapse: collapse;
-            color: #ece1d1;
-            font-size: 0.9rem;
-        }
-
-        table.custom-table th, table.custom-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        table.custom-table th {
-            background-color: rgba(255, 209, 101, 0.15);
-            color: #ffd165;
-            font-weight: 600;
-        }
-
-        table.custom-table tr:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .btn {
-            background: linear-gradient(to bottom, #ffd165, #e0b034);
-            border: 1px solid rgba(0,0,0,0.2);
-            color: #17130a;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-block;
-            text-align: center;
-        }
-
-        .btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(255, 209, 101, 0.4);
-        }
-
-        .btn-secondary {
-            background: linear-gradient(to bottom, #3a3325, #1a130a);
-            color: #ffd165;
-            border: 1px solid rgba(255, 209, 101, 0.3);
-        }
-
-        .btn-secondary:hover {
-            box-shadow: 0 4px 12px rgba(255, 209, 101, 0.1);
-        }
-
-        .btn-danger {
-            background: linear-gradient(to bottom, #d9534f, #c9302c);
-            color: #fff;
-            border: 1px solid rgba(0,0,0,0.2);
-        }
-
-        .btn-danger:hover {
-            box-shadow: 0 4px 12px rgba(217, 83, 79, 0.4);
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background-color: #1e1a11;
-            border: 1px solid rgba(255, 209, 101, 0.3);
-            padding: 25px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            color: #ece1d1;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .form-group label {
-            text-align: left;
-            font-size: 0.85rem;
-            color: rgba(211, 197, 172, 0.9);
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        
-        .form-group input:focus, .form-group select:focus {
-            border-color: rgba(255, 209, 101, 0.5);
-            outline: none;
-        }
-
-        #qr-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 15px 0;
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            width: fit-content;
-        }
-
-        #qr-code {
-            margin-bottom: 10px;
-        }
-
-        .text-red {
-            color: #ff6b6b;
-        }
-
-        .text-green {
-            color: #51cf66;
-        }
-
-        .badge-presencial {
-            background-color: rgba(81, 207, 102, 0.15);
-            color: #51cf66;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-
-        .badge-virtual {
-            background-color: rgba(77, 171, 247, 0.15);
-            color: #4dabf7;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-    </style>
 </head>
 <body>
+    <h1>Mis Clases</h1>
+    <p><a href="/interface">← Panel</a> | <a href="/">Salir</a></p>
 
-    <div class="dashboard-container" id="workspace-container">
-        <h1 style="margin-bottom: 10px;">Mis Clases Registradas</h1>
-        <p style="text-align: center; margin-bottom: 20px;"><a href="/interface" style="color: #ffd165; text-decoration: none;">← Volver al Panel</a></p>
-
-        <div id="contenedor-materias" class="card" style="max-width: 600px; margin: 0 auto; padding: 20px;">
-            <p>Cargando clases...</p>
-        </div>
-
-        <div id="vista-detalle-clase" style="display:none; margin-top:20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255,209,101,0.3); padding-bottom: 10px; margin-bottom: 20px;">
-                <button class="btn btn-secondary" onclick="volverALista()">← Volver a mis clases</button>
-                <h2 id="titulo-clase-detalle" style="margin: 0; color: #ffd165;"></h2>
-            </div>
-
-            <!-- Fila 1: Ubicación & Enlace de Inscripción -->
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Configurar Ubicación del Aula</h3>
-                    <p style="font-size: 0.85rem; color: rgba(236,225,209,0.7); margin-bottom: 15px;">
-                        Para clases presenciales, establece la ubicación del aula desde tu posición actual antes de iniciar el periodo.
-                    </p>
-                    <button class="btn" onclick="configurarUbicacion()">Establecer Ubicación Actual</button>
-                    <p id="estado-ubicacion-aula" style="margin-top: 10px; font-weight: bold; color: #ffd165;"></p>
-                </div>
-
-                <div class="card">
-                    <h3>Enlace de Inscripción Único</h3>
-                    <p style="font-size: 0.85rem; color: rgba(236,225,209,0.7); margin-bottom: 15px;">
-                        Copia este enlace de registro único y envíalo a tus alumnos para que se auto-inscriban una sola vez.
-                    </p>
-                    <button class="btn" onclick="copiarLinkInscripcion()">Copiar Enlace</button>
-                    <p id="estado-link-inscripcion" style="margin-top: 10px; font-weight: bold; color: #51cf66;"></p>
-                </div>
-            </div>
-
-            <!-- Fila 2: Control de Clase en Vivo (QR y Asistencia de Hoy) -->
-            <div class="card" style="border: 1px solid rgba(255, 209, 101, 0.25);">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 15px; gap: 10px;">
-                    <h3 style="margin: 0; border: none; padding: 0;">Control de Clase en Vivo (Asistencia del Día)</h3>
-                    <div>
-                        <button id="btn-iniciar-clase" class="btn" onclick="iniciarClase()">Iniciar Clase (Mostrar QR)</button>
-                        <button id="btn-detener-clase" class="btn btn-danger" onclick="detenerClase()" style="display: none;">Detener Clase (Finalizar QR)</button>
-                    </div>
-                </div>
-
-                <div id="seccion-clase-activa" style="display: none;">
-                    <div class="grid-2">
-                        <!-- Lado Izquierdo: QR y Contadores -->
-                        <div style="text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-                            <p style="margin: 0; font-size: 0.85rem; color: rgba(236,225,209,0.8);">Escanea el código QR desde tu dispositivo móvil:</p>
-                            <div id="qr-container">
-                                <div id="qr-code"></div>
-                                <span style="color: #17130a; font-size: 0.7rem; font-weight: 900; letter-spacing: 1px;">ASISGO SCAN</span>
-                            </div>
-                            <p id="qr-timer" style="font-weight: bold; color: #ffd165; margin: 5px 0; font-size: 0.95rem;"></p>
-                        </div>
-
-                        <!-- Lado Derecho: Tablas de Asistencia en Tiempo Real -->
-                        <div>
-                            <h4 style="margin-top: 0; color: #ffd165; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; font-size: 1.1rem;">Asistencia de Hoy en Tiempo Real</h4>
-                            <div class="grid-2" style="margin-top: 10px; gap: 15px;">
-                                <div>
-                                    <h5 class="text-green" style="margin: 5px 0; font-size: 0.9rem;">Presentes (<span id="count-presentes">0</span>)</h5>
-                                    <div class="table-container" style="max-height: 250px; background: rgba(0,0,0,0.2); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                        <table class="custom-table" style="font-size: 0.8rem;">
-                                            <thead>
-                                                <tr><th>Nombre</th><th>Cuenta</th></tr>
-                                            </thead>
-                                            <tbody id="cuerpo-hoy-presentes"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h5 class="text-red" style="margin: 5px 0; font-size: 0.9rem;">Ausentes (<span id="count-ausentes">0</span>)</h5>
-                                    <div class="table-container" style="max-height: 250px; background: rgba(0,0,0,0.2); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                                        <table class="custom-table" style="font-size: 0.8rem;">
-                                            <thead>
-                                                <tr><th>Nombre</th><th>Cuenta</th></tr>
-                                            </thead>
-                                            <tbody id="cuerpo-hoy-ausentes"></tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Fila 3: Listado General CRUD -->
-            <div class="card">
-                <h3>Listado General de Estudiantes (Control de Faltas)</h3>
-                <div class="table-container">
-                    <table class="custom-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Correo</th>
-                                <th>Teléfono</th>
-                                <th>Cuenta</th>
-                                <th>Modalidad</th>
-                                <th>Faltas</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cuerpo-tabla-estudiantes">
-                            <!-- se llena con JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Fila 4: Enlace Grabación Teams -->
-            <div class="card">
-                <h3>Compartir Grabación de Clase (Teams)</h3>
-                <p style="font-size: 0.85rem; color: rgba(236,225,209,0.7); margin-bottom: 10px;">
-                    Si grabaste la clase en Microsoft Teams, pega el enlace aquí para enviarlo por correo a todos los estudiantes inscritos en este curso.
-                </p>
-                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-                    <input type="url" id="input-teams-url" placeholder="https://teams.microsoft.com/l/meetup-join/..." style="flex: 1; min-width: 250px;">
-                    <button class="btn" onclick="enviarGrabacionTeams()" style="width: auto; white-space: nowrap;">Enviar por Correo</button>
-                </div>
-                <p id="estado-envio-grabacion" style="margin-top: 10px; font-weight: bold; font-size: 0.9rem;"></p>
-            </div>
-        </div>
+    <div id="contenedor-materias">
+        <p>Cargando clases...</p>
     </div>
 
-    <!-- Modal para editar estudiante -->
-    <div id="modal-editar-estudiante" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-top: 0; color: #ffd165; border-bottom: 1px solid rgba(255,209,101,0.3); padding-bottom: 10px;">Editar Estudiante</h3>
-            <form id="form-editar-estudiante" onsubmit="guardarEdicionEstudiante(event)">
-                <input type="hidden" id="edit-id-estudiante">
-                <div class="form-group">
-                    <label for="edit-nombre">Nombre:</label>
-                    <input type="text" id="edit-nombre" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-correo">Correo Electrónico:</label>
-                    <input type="email" id="edit-correo" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-telefono">Teléfono:</label>
-                    <input type="text" id="edit-telefono" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-cuenta">Número de Cuenta:</label>
-                    <input type="text" id="edit-cuenta" required>
-                </div>
-                <div class="form-group">
-                    <label for="edit-modalidad">Modalidad:</label>
-                    <select id="edit-modalidad" required>
-                        <option value="presencial">Presencial</option>
-                        <option value="virtual">Virtual</option>
-                    </select>
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
-                    <button type="submit" class="btn">Guardar Cambios</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <div id="vista-detalle-clase" style="display:none;">
+        <button onclick="volverALista()">← Volver</button>
+        <h2 id="titulo-clase"></h2>
 
-    <!-- Modal para Modificar Asistencia Manual -->
-    <div id="modal-asistencia-manual" class="modal">
-        <div class="modal-content">
-            <h3 style="margin-top: 0; color: #ffd165; border-bottom: 1px solid rgba(255,209,101,0.3); padding-bottom: 10px;">Modificar Asistencia Manual</h3>
-            <form id="form-asistencia-manual" onsubmit="guardarAsistenciaManual(event)">
-                <input type="hidden" id="manual-id-estudiante">
-                <div class="form-group">
-                    <label>Estudiante:</label>
-                    <input type="text" id="manual-nombre-estudiante" readonly style="background: rgba(255,255,255,0.05); color: #ccc;">
-                </div>
-                <div class="form-group">
-                    <label for="manual-fecha">Fecha:</label>
-                    <input type="date" id="manual-fecha" required>
-                </div>
-                <div class="form-group">
-                    <label for="manual-estado">Estado de Asistencia:</label>
-                    <select id="manual-estado" required>
-                        <option value="true">Presente</option>
-                        <option value="false">Ausente (Falta)</option>
-                    </select>
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                    <button type="button" class="btn btn-secondary" onclick="cerrarModalAsistencia()">Cancelar</button>
-                    <button type="submit" class="btn">Guardar Asistencia</button>
-                </div>
-            </form>
-        </div>
+        <h3>Ubicación del Aula</h3>
+        <button onclick="guardarUbicacion()">Usar mi ubicación actual</button>
+        <p id="estado-ubicacion"></p>
+
+        <h3>Estudiantes Inscritos</h3>
+        <table border="1" cellpadding="8" style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Cuenta</th>
+                    <th>Modalidad</th>
+                    <th>Faltas</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpo-tabla">
+                <tr><td colspan="6">Cargando estudiantes...</td></tr>
+            </tbody>
+        </table>
+
+        <br>
+        <button onclick="cerrarClase()">Cerrar Clase (marcar ausentes)</button>
+        <p id="estado-cierre"></p>
+
+        <h3>Publicar Grabación</h3>
+        <input type="text" id="url-grabacion" placeholder="Pega URL de Teams/Drive/OneDrive" style="width:300px;">
+        <button onclick="publicarGrabacion()">Publicar y enviar correos</button>
+        <p id="estado-grabacion"></p>
     </div>
 
     <script>
-    const API_BASE = window.location.origin.includes("127.0.0.1") || window.location.origin.includes("localhost") 
-        ? "http://127.0.0.1:8000" 
-        : window.location.origin;
-
     let idMateriaActual = null;
-    let qrInterval = null;
-    let attendanceInterval = null;
-    let countdownInterval = null;
-    let countdown = 15;
 
     async function cargarClases() {
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
-        const respuesta = await fetch(`${API_BASE}/mis_materias`, {
+        const respuesta = await fetch("http://127.0.0.1:8000/mis_materias", {
             method: "GET",
             headers: { "Authorization": "Bearer " + tokenGuardado }
         });
@@ -425,264 +62,66 @@
         const materias = await respuesta.json();
         const contenedor = document.getElementById("contenedor-materias");
 
-        if (respuesta.ok) {
-            if (materias.length === 0) {
-                contenedor.innerHTML = "<p style='text-align:center;'>No tienes clases registradas todavía.</p>";
-                return;
-            }
-
-            let html = "<ul style='list-style: none; padding: 0; margin: 0;'>";
+        if (respuesta.ok && materias.length > 0) {
+            let html = "<ul>";
             materias.forEach(m => {
-                html += `<li style='display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); gap: 15px;'>
-                    <div>
-                        <strong style='color: #ffd165; font-size: 1.1rem;'>${m.nombre}</strong><br>
-                        <span style='font-size: 0.85rem; color: rgba(236,225,209,0.7);'>Sección: ${m.seccion} | Horario: ${m.horario}</span>
-                    </div>
-                    <button class="btn" style="padding: 6px 12px; font-size: 0.85rem;" onclick="irAClase(${m.id_materia}, '${m.nombre.replace(/'/g, "\\'")}')">Ir a clase</button>
+                html += `<li>
+                    <strong>${m.nombre}</strong> (${m.seccion})
+                    <button onclick="irAClase(${m.id_materia}, '${m.nombre}')">Entrar</button>
                 </li>`;
             });
             html += "</ul>";
-
             contenedor.innerHTML = html;
         } else {
-            contenedor.innerHTML = "<p style='color: #ff6b6b; text-align:center;'>Error al cargar las clases.</p>";
+            contenedor.innerHTML = "<p>No tienes clases registradas.</p>";
         }
     }
 
-    function irAClase(idMateria, nombreMateria) {
+    function irAClase(idMateria, nombre) {
         idMateriaActual = idMateria;
         document.getElementById("contenedor-materias").style.display = "none";
         document.getElementById("vista-detalle-clase").style.display = "block";
-        document.getElementById("titulo-clase-detalle").innerText = nombreMateria;
-        
-        // Resetear estados
-        document.getElementById("estado-ubicacion-aula").innerText = "";
-        document.getElementById("estado-link-inscripcion").innerText = "";
-        document.getElementById("estado-envio-grabacion").innerText = "";
-        document.getElementById("input-teams-url").value = "";
-        
-        detenerClase(); // Asegurar que no hay intervalos previos activos
-        cargarEstudiantesConFaltas();
+        document.getElementById("titulo-clase").innerText = nombre;
+        cargarEstudiantes();
     }
 
     function volverALista() {
-        detenerClase();
         document.getElementById("vista-detalle-clase").style.display = "none";
         document.getElementById("contenedor-materias").style.display = "block";
         idMateriaActual = null;
-        cargarClases();
     }
 
-    async function configurarUbicacion() {
-        document.getElementById("estado-ubicacion-aula").innerText = "Obteniendo ubicación...";
-        navigator.geolocation.getCurrentPosition(async function (posicion) {
-            const tokenGuardado = sessionStorage.getItem("miTokenJWT");
-            const lat = posicion.coords.latitude;
-            const lng = posicion.coords.longitude;
-
-            const respuesta = await fetch(
-                `${API_BASE}/materia/${idMateriaActual}/configurar_ubicacion?lat=${lat}&lng=${lng}`,
-                { 
-                    method: "POST", 
-                    headers: { "Authorization": "Bearer " + tokenGuardado } 
-                }
-            );
-
-            const datos = await respuesta.json();
-            document.getElementById("estado-ubicacion-aula").innerText =
-                respuesta.ok ? "✓ " + datos.mensaje : "Error: " + datos.detail;
-        }, function(error) {
-            document.getElementById("estado-ubicacion-aula").innerText = "Error: Permiso de ubicación denegado.";
-        });
-    }
-
-    async function copiarLinkInscripcion() {
-        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
-        const respuesta = await fetch(`${API_BASE}/materia/${idMateriaActual}/link_inscripcion`, {
-            method: "GET",
-            headers: { "Authorization": "Bearer " + tokenGuardado }
-        });
-
-        const datos = await respuesta.json();
-        if (respuesta.ok) {
-            const linkCompleto = window.location.origin + datos.ruta;
-            navigator.clipboard.writeText(linkCompleto).then(() => {
-                document.getElementById("estado-link-inscripcion").innerText = "¡Enlace copiado al portapapeles!";
-                setTimeout(() => {
-                    document.getElementById("estado-link-inscripcion").innerText = "";
-                }, 3000);
-            }).catch(err => {
-                document.getElementById("estado-link-inscripcion").innerText = "Error al copiar: " + linkCompleto;
-            });
-        } else {
-            alert("Error: " + datos.detail);
-        }
-    }
-
-    // --- Control de Clase en Vivo (QR y Asistencia de Hoy) ---
-    async function iniciarClase() {
-        document.getElementById("btn-iniciar-clase").style.display = "none";
-        document.getElementById("btn-detener-clase").style.display = "inline-block";
-        document.getElementById("seccion-clase-activa").style.display = "block";
-
-        countdown = 15;
-        await actualizarQR();
-        
-        // Intervalo para generar QR cada 15 segundos
-        qrInterval = setInterval(actualizarQR, 15000);
-
-        // Intervalo de countdown (1s)
-        countdownInterval = setInterval(() => {
-            countdown--;
-            if (countdown <= 0) countdown = 15;
-            document.getElementById("qr-timer").innerText = `El código QR se actualizará en ${countdown} segundos.`;
-        }, 1000);
-
-        // Polling de asistencia hoy (cada 5s)
-        pollAsistenciaHoy();
-        attendanceInterval = setInterval(pollAsistenciaHoy, 5000);
-    }
-
-    function detenerClase() {
-        if (qrInterval) clearInterval(qrInterval);
-        if (attendanceInterval) clearInterval(attendanceInterval);
-        if (countdownInterval) clearInterval(countdownInterval);
-
-        qrInterval = null;
-        attendanceInterval = null;
-        countdownInterval = null;
-
-        document.getElementById("btn-iniciar-clase").style.display = "inline-block";
-        document.getElementById("btn-detener-clase").style.display = "none";
-        document.getElementById("seccion-clase-activa").style.display = "none";
-        document.getElementById("qr-code").innerHTML = "";
-        document.getElementById("qr-timer").innerText = "";
-        document.getElementById("cuerpo-hoy-presentes").innerHTML = "";
-        document.getElementById("cuerpo-hoy-ausentes").innerHTML = "";
-        document.getElementById("count-presentes").innerText = "0";
-        document.getElementById("count-ausentes").innerText = "0";
-    }
-
-    async function actualizarQR() {
-        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
-        const respuesta = await fetch(`${API_BASE}/materia/${idMateriaActual}/generar_qr_token`, {
-            method: "GET",
-            headers: { "Authorization": "Bearer " + tokenGuardado }
-        });
-
-        const datos = await respuesta.json();
-        if (respuesta.ok) {
-            const token = datos.token;
-            const urlAsistencia = `${window.location.origin}/marcar?id_materia=${idMateriaActual}&token=${token}`;
-            
-            document.getElementById("qr-code").innerHTML = "";
-            new QRCode(document.getElementById("qr-code"), {
-                text: urlAsistencia,
-                width: 160,
-                height: 160,
-                colorDark : "#17130a",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
-            
-            countdown = 15;
-            document.getElementById("qr-timer").innerText = `El código QR se actualizará en ${countdown} segundos.`;
-        } else {
-            console.error("Error al generar QR Token: ", datos.detail);
-        }
-    }
-
-    async function pollAsistenciaHoy() {
-        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
-        const respuesta = await fetch(`${API_BASE}/materia/${idMateriaActual}/asistencia_hoy`, {
-            method: "GET",
-            headers: { "Authorization": "Bearer " + tokenGuardado }
-        });
-
-        const datos = await respuesta.json();
-        if (respuesta.ok) {
-            const cuerpoPresentes = document.getElementById("cuerpo-hoy-presentes");
-            const cuerpoAusentes = document.getElementById("cuerpo-hoy-ausentes");
-
-            document.getElementById("count-presentes").innerText = datos.presentes.length;
-            document.getElementById("count-ausentes").innerText = datos.ausentes.length;
-
-            let htmlPresentes = "";
-            if (datos.presentes.length === 0) {
-                htmlPresentes = `<tr><td colspan="2" style="text-align:center; color:rgba(236,225,209,0.5);">Ninguno marcado</td></tr>`;
-            } else {
-                datos.presentes.forEach(p => {
-                    const badgClass = p.modalidad === 'presencial' ? 'badge-presencial' : 'badge-virtual';
-                    htmlPresentes += `<tr>
-                        <td>${p.nombre}</td>
-                        <td><span class="${badgClass}">${p.modalidad}</span></td>
-                    </tr>`;
-                });
-            }
-            cuerpoPresentes.innerHTML = htmlPresentes;
-
-            let htmlAusentes = "";
-            if (datos.ausentes.length === 0) {
-                htmlAusentes = `<tr><td colspan="2" style="text-align:center; color:rgba(236,225,209,0.5);">Todos presentes</td></tr>`;
-            } else {
-                datos.ausentes.forEach(a => {
-                    htmlAusentes += `<tr>
-                        <td class="text-red">${a.nombre}</td>
-                        <td><span class="badge-virtual" style="background: rgba(217, 83, 79, 0.15); color: #ff6b6b;">Falta</span></td>
-                    </tr>`;
-                });
-            }
-            cuerpoAusentes.innerHTML = htmlAusentes;
-        } else {
-            console.error("Error polling attendance today: ", datos.detail);
-        }
-    }
-
-    // --- Listado General de Estudiantes & CRUD ---
-    async function cargarEstudiantesConFaltas() {
+    async function cargarEstudiantes() {
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
-        const respuesta = await fetch(`${API_BASE}/materia/${idMateriaActual}/estudiantes`, {
+        const respuesta = await fetch(`http://127.0.0.1:8000/materia/${idMateriaActual}/estudiantes`, {
             method: "GET",
             headers: { "Authorization": "Bearer " + tokenGuardado }
         });
 
         const estudiantes = await respuesta.json();
-        const cuerpo = document.getElementById("cuerpo-tabla-estudiantes");
+        const cuerpo = document.getElementById("cuerpo-tabla");
 
         if (!respuesta.ok) {
-            cuerpo.innerHTML = `<tr><td colspan="7">Error: ${estudiantes.detail}</td></tr>`;
+            cuerpo.innerHTML = `<tr><td colspan="6">Error: ${estudiantes.detail}</td></tr>`;
             return;
         }
 
         if (estudiantes.length === 0) {
-            cuerpo.innerHTML = `<tr><td colspan="7" style="text-align:center;">Todavía no hay estudiantes inscritos en esta materia.</td></tr>`;
+            cuerpo.innerHTML = `<tr><td colspan="6">Sin estudiantes inscritos aún.</td></tr>`;
             return;
         }
 
         let html = "";
         estudiantes.forEach(e => {
-            const badgClass = e.modalidad === 'presencial' ? 'badge-presencial' : 'badge-virtual';
-            
-            // Escapar valores para evitar errores JS al pasar parámetros a abrirModalEditar
-            const escNombre = e.nombre.replace(/'/g, "\\'");
-            const escCorreo = e.correo.replace(/'/g, "\\'");
-            const escTelefono = e.telefono.replace(/'/g, "\\'");
-            const escCuenta = e.numero_cuenta.replace(/'/g, "\\'");
-
-            html += `<tr id="fila-${e.id_estudiante}">
-                <td style="font-weight: 500;">${e.nombre}</td>
+            html += `<tr>
+                <td>${e.nombre}</td>
                 <td>${e.correo}</td>
-                <td>${e.telefono}</td>
                 <td>${e.numero_cuenta}</td>
-                <td><span class="${badgClass}">${e.modalidad}</span></td>
-                <td style="text-align: center; font-weight: bold; color: ${e.faltas > 3 ? '#ff6b6b' : '#ece1d1'}">${e.faltas}</td>
+                <td>${e.modalidad}</td>
+                <td>${e.faltas}</td>
                 <td>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary" style="padding: 4px 8px; font-size: 0.8rem;" onclick="abrirModalEditar(${e.id_estudiante}, '${escNombre}', '${escCorreo}', '${escTelefono}', '${escCuenta}', '${e.modalidad}')">Editar</button>
-                        <button class="btn" style="padding: 4px 8px; font-size: 0.8rem;" onclick="abrirModalAsistencia(${e.id_estudiante}, '${escNombre}')">Asistencia</button>
-                        <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.8rem;" onclick="eliminarEstudiante(${e.id_estudiante})">Eliminar</button>
-                    </div>
+                    <button onclick="eliminarEstudiante(${e.id_estudiante})">Eliminar</button>
                 </td>
             </tr>`;
         });
@@ -691,156 +130,75 @@
     }
 
     async function eliminarEstudiante(idEstudiante) {
-        if (!confirm("¿Seguro que quieres eliminar este estudiante del curso?")) return;
+        if (!confirm("¿Eliminar este estudiante?")) return;
 
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
-        const respuesta = await fetch(`${API_BASE}/estudiante/${idEstudiante}`, {
+        const respuesta = await fetch(`http://127.0.0.1:8000/estudiante/${idEstudiante}`, {
             method: "DELETE",
             headers: { "Authorization": "Bearer " + tokenGuardado }
         });
 
         if (respuesta.ok) {
-            document.getElementById(`fila-${idEstudiante}`).remove();
+            cargarEstudiantes();
         } else {
             const datos = await respuesta.json();
             alert("Error: " + datos.detail);
         }
     }
 
-    // --- Modal Editar Estudiante ---
-    function abrirModalEditar(id, nombre, correo, telefono, cuenta, modalidad) {
-        document.getElementById("edit-id-estudiante").value = id;
-        document.getElementById("edit-nombre").value = nombre;
-        document.getElementById("edit-correo").value = correo;
-        document.getElementById("edit-telefono").value = telefono;
-        document.getElementById("edit-cuenta").value = cuenta;
-        document.getElementById("edit-modalidad").value = modalidad;
-        
-        document.getElementById("modal-editar-estudiante").style.display = "flex";
+    async function guardarUbicacion() {
+        navigator.geolocation.getCurrentPosition(async function(posicion) {
+            const tokenGuardado = sessionStorage.getItem("miTokenJWT");
+            const lat = posicion.coords.latitude;
+            const lng = posicion.coords.longitude;
+
+            const respuesta = await fetch(
+                `http://127.0.0.1:8000/materia/${idMateriaActual}/configurar_ubicacion?lat=${lat}&lng=${lng}`,
+                { method: "POST", headers: { "Authorization": "Bearer " + tokenGuardado } }
+            );
+
+            const datos = await respuesta.json();
+            document.getElementById("estado-ubicacion").innerText =
+                respuesta.ok ? "✓ " + datos.mensaje : "Error: " + datos.detail;
+        });
     }
 
-    function cerrarModalEditar() {
-        document.getElementById("modal-editar-estudiante").style.display = "none";
-    }
-
-    async function guardarEdicionEstudiante(event) {
-        event.preventDefault();
-        const idEstudiante = document.getElementById("edit-id-estudiante").value;
-        const nombre = document.getElementById("edit-nombre").value;
-        const correo = document.getElementById("edit-correo").value;
-        const telefono = document.getElementById("edit-telefono").value;
-        const cuenta = document.getElementById("edit-cuenta").value;
-        const modalidad = document.getElementById("edit-modalidad").value;
+    async function cerrarClase() {
+        if (!confirm("Marcar ausentes a quienes no escanearon?")) return;
 
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
-        const respuesta = await fetch(`${API_BASE}/estudiante/${idEstudiante}`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + tokenGuardado 
-            },
-            body: JSON.stringify({
-                nombre: nombre,
-                correo: correo,
-                telefono: telefono,
-                numero_cuenta: cuenta,
-                modalidad: modalidad
-            })
+        const respuesta = await fetch(`http://127.0.0.1:8000/materia/${idMateriaActual}/cerrar_clase`, {
+            method: "POST",
+            headers: { "Authorization": "Bearer " + tokenGuardado }
         });
 
         const datos = await respuesta.json();
-        if (respuesta.ok) {
-            cerrarModalEditar();
-            cargarEstudiantesConFaltas();
-        } else {
-            alert("Error: " + datos.detail);
+        document.getElementById("estado-cierre").innerText =
+            respuesta.ok ? "✓ " + datos.mensaje : "Error: " + datos.detail;
+    }
+
+    async function publicarGrabacion() {
+        const url = document.getElementById("url-grabacion").value;
+        if (!url) {
+            alert("Pega el URL de la grabacion");
+            return;
         }
-    }
-
-    // --- Modal Asistencia Manual ---
-    function abrirModalAsistencia(id, nombre) {
-        document.getElementById("manual-id-estudiante").value = id;
-        document.getElementById("manual-nombre-estudiante").value = nombre;
-        
-        // Poner la fecha de hoy por defecto en formato local YYYY-MM-DD
-        const hoy = new Date();
-        const offset = hoy.getTimezoneOffset();
-        const hoyCorregido = new Date(hoy.getTime() - (offset*60*1000));
-        document.getElementById("manual-fecha").value = hoyCorregido.toISOString().split('T')[0];
-        document.getElementById("manual-estado").value = "true";
-
-        document.getElementById("modal-asistencia-manual").style.display = "flex";
-    }
-
-    function cerrarModalAsistencia() {
-        document.getElementById("modal-asistencia-manual").style.display = "none";
-    }
-
-    async function guardarAsistenciaManual(event) {
-        event.preventDefault();
-        const idEstudiante = document.getElementById("manual-id-estudiante").value;
-        const fecha = document.getElementById("manual-fecha").value;
-        const presente = document.getElementById("manual-estado").value === "true";
 
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
         const respuesta = await fetch(
-            `${API_BASE}/asistencia/manual?id_estudiante=${idEstudiante}&id_materia=${idMateriaActual}&fecha=${fecha}&presente=${presente}`, 
-            {
-                method: "PUT",
-                headers: { "Authorization": "Bearer " + tokenGuardado }
-            }
+            `http://127.0.0.1:8000/materia/${idMateriaActual}/publicar_grabacion?url_video=${encodeURIComponent(url)}`,
+            { method: "POST", headers: { "Authorization": "Bearer " + tokenGuardado } }
         );
 
         const datos = await respuesta.json();
+        document.getElementById("estado-grabacion").innerText =
+            respuesta.ok ? "✓ " + datos.mensaje : "Error: " + datos.detail;
+
         if (respuesta.ok) {
-            cerrarModalAsistencia();
-            cargarEstudiantesConFaltas();
-        } else {
-            alert("Error: " + datos.detail);
-        }
-    }
-
-    // --- Compartir Grabación Teams por Correo ---
-    async function enviarGrabacionTeams() {
-        const urlVideo = document.getElementById("input-teams-url").value.trim();
-        const estado = document.getElementById("estado-envio-grabacion");
-        
-        if (!urlVideo) {
-            estado.innerText = "Por favor, ingresa una URL válida.";
-            estado.style.color = "#ff6b6b";
-            return;
-        }
-
-        estado.innerText = "Enviando enlace a los estudiantes...";
-        estado.style.color = "#ffd165";
-
-        const tokenGuardado = sessionStorage.getItem("miTokenJWT");
-
-        try {
-            const respuesta = await fetch(`${API_BASE}/materia/${idMateriaActual}/enviar_video`, {
-                method: "POST",
-                headers: { 
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + tokenGuardado 
-                },
-                body: JSON.stringify({ video_url: urlVideo })
-            });
-
-            const datos = await respuesta.json();
-            if (respuesta.ok) {
-                estado.innerText = "✓ " + datos.mensaje;
-                estado.style.color = "#51cf66";
-                document.getElementById("input-teams-url").value = "";
-            } else {
-                estado.innerText = "Error: " + datos.detail;
-                estado.style.color = "#ff6b6b";
-            }
-        } catch (err) {
-            estado.innerText = "Error de red al intentar enviar el enlace.";
-            estado.style.color = "#ff6b6b";
+            document.getElementById("url-grabacion").value = "";
         }
     }
 

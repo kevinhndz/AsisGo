@@ -7,55 +7,41 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-
     <h1>Panel del Profesor</h1>
+    <p><a href="/workspace">Ver mis clases registradas →</a> | <a href="/">Salir</a></p>
 
-    <section>
-        <h3>Registrar Nueva Clase</h3>
-        <form id="formulario-materias">
-            <input type="text" id="nombre" placeholder="Nombre de la clase" required>
-            <br>
-            <input type="text" id="seccion" placeholder="Sección (ej: 0801)" required>
-            <br>
-            <input type="text" id="horario" placeholder="Horario (ej: Lunes)" required>
-            <br><br>
-            <button type="submit">Registrar Clase</button>
-        </form>
-        <p id="creado"></p>
-    </section>
+    <h2>Crear Nueva Clase</h2>
+    <form id="formulario-materias">
+        <input type="text" id="nombre" placeholder="Nombre de la clase" required>
+        <br>
+        <input type="text" id="seccion" placeholder="Sección (ej: 0801)" required>
+        <br>
+        <input type="text" id="horario" placeholder="Horario (ej: Lunes 08:00-10:00)" required>
+        <br><br>
+        <button type="submit">Registrar Clase</button>
+    </form>
+    <p id="creado"></p>
 
-    <a href="/workspace" style="font-size: 18px; font-weight: bold;">Ver mis clases registradas →</a>
-
-    <!-- ======================================================
-         NUEVO: boton y modal de QR. Le pones el id_materia real
-         cuando integres esto a la vista de una clase especifica
-         (por ahora prueba escribiendo el numero a mano abajo).
-    ====================================================== -->
     <hr>
-    <h3>Código de Asistencia</h3>
+    <h2>Código QR de Asistencia</h2>
     <p>
-        ID de la materia a probar:
-        <input type="number" id="id_materia_prueba" placeholder="ej: 1" style="width:60px;">
+        ID Materia: <input type="number" id="id_materia_prueba" placeholder="ej: 1" style="width:60px;">
+        <button onclick="abrirModalQR()">Mostrar QR</button>
     </p>
-    <button onclick="abrirModalQR()">Mostrar código QR</button>
 
-    <div id="modal-qr" style="display:none; border:2px solid #333; padding:20px; width:260px; margin-top:15px;">
+    <div id="modal-qr" style="display:none; border:2px solid #333; padding:20px; width:260px;">
         <div id="contenedor-qr"></div>
         <p id="contador-qr" style="font-size:12px; color:#666;"></p>
         <button onclick="cerrarModalQR()">Cerrar</button>
     </div>
 
     <script>
-    // ----------------------------------------------------------
-    // Lógica original tuya de crear materia (sin tocar)
-    // ----------------------------------------------------------
-    document.getElementById("formulario-materias").addEventListener("submit", async function (e){
+    document.getElementById("formulario-materias").addEventListener("submit", async function(e){
         e.preventDefault();
 
         const nombre = document.getElementById("nombre").value;
         const seccion = document.getElementById("seccion").value;
         const horario = document.getElementById("horario").value;
-
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
 
         const respuesta = await fetch("http://127.0.0.1:8000/crear_materia", {
@@ -64,25 +50,21 @@
                 "Content-Type": "application/json",
                 "Authorization": "Bearer " + tokenGuardado 
             }, 
-            body: JSON.stringify({ nombre: nombre, seccion: seccion, horario: horario })
+            body: JSON.stringify({ nombre, seccion, horario })
         });
 
         const datos = await respuesta.json();
-
         if(respuesta.ok){
             document.getElementById("creado").innerText = datos.mensaje;
             document.getElementById("creado").style.color = "green";
+            document.getElementById("formulario-materias").reset();
         } else {
-            document.getElementById("creado").innerText = "Error: " + JSON.stringify(datos.detail);
+            document.getElementById("creado").innerText = "Error: " + datos.detail;
             document.getElementById("creado").style.color = "red";
         }
     });
 
-    // ----------------------------------------------------------
-    // NUEVO: Lógica del QR dinámico
-    // ----------------------------------------------------------
     let intervaloQR = null;
-    let objetoQR = null;
 
     async function pedirTokenYPintarQR(idMateria) {
         const tokenGuardado = sessionStorage.getItem("miTokenJWT");
@@ -93,7 +75,7 @@
         });
 
         if (!respuesta.ok) {
-            document.getElementById("contenedor-qr").innerHTML = "<p>Error generando el código.</p>";
+            document.getElementById("contenedor-qr").innerHTML = "<p>Error generando el codigo.</p>";
             return;
         }
 
@@ -103,13 +85,12 @@
         const contenedor = document.getElementById("contenedor-qr");
         contenedor.innerHTML = "";
 
-        objetoQR = new QRCode(contenedor, {
+        new QRCode(contenedor, {
             text: urlParaElQR,
             width: 220,
             height: 220
         });
 
-        // contador visual simple de 15 a 0
         let segundos = 15;
         document.getElementById("contador-qr").innerText = `Se renueva en ${segundos}s`;
         const cuentaAtras = setInterval(() => {
@@ -133,10 +114,7 @@
 
     function cerrarModalQR() {
         document.getElementById("modal-qr").style.display = "none";
-        if (intervaloQR) {
-            clearInterval(intervaloQR);
-            intervaloQR = null;
-        }
+        if (intervaloQR) clearInterval(intervaloQR);
     }
     </script>
 </body>
