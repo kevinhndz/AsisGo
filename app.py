@@ -94,7 +94,7 @@ def login(
         
         "mensaje":"Bienvenido",
         "token":mi_token,  # aqui lo agrego
-        "token_type":"Bearer"
+        "token_type":"bearer"
     
     }
     
@@ -116,23 +116,31 @@ def crear_cliente(
             detail=f"Usuario: {json_enviado.usuario} ya esta siendo utilizado. Crea otro! "
         )
     else:
+        nuevo_usuario = TablaUsuarios(usuario=json_enviado.usuario, contrasena=json_enviado.contrasena)
+        base_datos.add(nuevo_usuario)
+        base_datos.flush()
         
-            nuevo_usuario = TablaUsuarios(usuario=json_enviado.usuario, contrasena=json_enviado.contrasena)
-            base_datos.add(nuevo_usuario)
-            base_datos.flush()
-            
-            nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, correo = json_enviado.correo, id_usuario=nuevo_usuario.id_usuario)
-            base_datos.add(nuevo_cliente)
-            base_datos.commit()
-           
-            
-            return {"mensaje": f" ¡Bienvenido {json_enviado.usuario}!"}
+        nuevo_cliente = TablaClientes(nombre=json_enviado.nombre, telefono=json_enviado.telefono, correo = json_enviado.correo, id_usuario=nuevo_usuario.id_usuario)
+        base_datos.add(nuevo_cliente)
+        base_datos.commit()
+       
+        # Creamos su token de bienvenida al registrarse
+        diccionario_profesor = {
+            "id_usuario": nuevo_usuario.id_usuario,
+            "usuario": nuevo_usuario.usuario
+        }
+        mi_token = emitir_credencial(diccionario_profesor)
         
+        # Devolvemos el token de forma limpia
+        return {
+            "mensaje": f" ¡Bienvenido {json_enviado.usuario}!",
+            "token": mi_token,
+            "token_type": "bearer"
+        }
         
 @app.post("/crear_materia", status_code= status.HTTP_200_OK)
 def crear_materia (
      json_enviado : CrearMateria,
-     #extraemos el id del token de un solo
      id_del_profesor: int = Depends(revisar_credencial_en_sistema),
      base_datos : Session = Depends(abrir_puerta_bd)
 ):
@@ -153,8 +161,7 @@ def crear_materia (
         base_datos.add(nueva_clase)
         base_datos.commit()
         
-    
-        return  {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
+        return {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
     
     
 @app.get("/mis_materias")

@@ -16,7 +16,7 @@ class TablaClientes(miClaseBase):
     nombre = Column(String(100))
     telefono = Column(String(20))
     correo = Column(String(150), unique= True)
-    id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), unique=True)
+    id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"))
     
 class TablaMaterias (miClaseBase):
     __tablename__ = "materias"
@@ -25,7 +25,7 @@ class TablaMaterias (miClaseBase):
     nombre = Column(String(50))
     seccion = Column(String(20), unique= True)
     horario = Column(String(25))
-    id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), unique= True)
+    id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"))
     
 class TablaEstudiantes(miClaseBase):
     __tablename__ = "estudiantes"
@@ -34,7 +34,7 @@ class TablaEstudiantes(miClaseBase):
     nombre = Column (String(50))
     telefono = Column(String(20))
     modalidad = Column(String(15))
-    id_materia = Column(Integer, ForeignKey("materias.id_materia"), unique=True)
+    id_materia = Column(Integer, ForeignKey("materias.id_materia"))
     
     
 

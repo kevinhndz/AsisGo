@@ -32,7 +32,7 @@
         <div class="right-panel">
             <div class="form-wrapper">
                 <h2>Crear Cuenta</h2>
-                <p class="subtitle">Completa los campos para darte de alta.</p>
+                <p class="subtitle">Completa los campos para darte acceso.</p>
 
                 <form id="formulario-nuevo">
                     <div class="input-group">
@@ -93,6 +93,7 @@
             
             if (respuesta.ok){
                 sessionStorage.setItem("mensajeBienvenida", datos_recibidos.mensaje);
+                sessionStorage.setItem("miTokenJWT", datos_recibidos.token);
                 window.location.href = "/interface";
             } else {
                 document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos_recibidos.detail);
