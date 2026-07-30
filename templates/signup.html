@@ -3,103 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Let's Sign Up</title>
-    
+    <title>Registro - Asis GO+</title>
     <link rel="stylesheet" href="/static/styless.css">
 </head>
 <body>
-
-    <div class="main-container">
-        
-        <div class="left-panel">
-            <div class="overlay"></div>
-            <div class="left-content">
-                <div class="badge-line">
-                    <div class="line"></div>
-                    <span>ASIS GO+ REGISTRO</span>
-                </div>
-                <h1>Es hora de <br><span class="highlight">Registrarse</span></h1>
-                <p>Crea tu cuenta ahora para acceder a todas las herramientas de gestión, control de asistencia y servicios integrados.</p>
-                <div class="code-steps">
-                    <span>01 / Alta Rápida en el Sistema</span>
-                    <span>02 / Acceso Seguro a Base de Datos</span>
-                    <span>03 / Panel de Control Personalizado</span>
-                </div>
-            </div>
-        </div>
-
-        
-        <div class="right-panel">
-            <div class="form-wrapper">
-                <h2>Crear Cuenta</h2>
-                <p class="subtitle">Completa los campos para darte acceso.</p>
-
-                <form id="formulario-nuevo">
-                    <div class="input-group">
-                        <label>Tu Nombre:</label>
-                        <input type="text" id="nombre" placeholder="Tu nombre" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Tu Telefono:</label>
-                        <input type="text" id="telefono" placeholder="+504 8950-0088" required>
-                    </div>
-
-                      <div class="input-group">
-                        <label>Tu Correo:</label>
-                        <input type="text" id="correo" placeholder="kevs@uph.edu.hn" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Escribe tu Nombre de Usuario:</label>
-                        <input type="text" id="usuario" placeholder="kevstpg" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Tu Contrasena:</label>
-                        <input type="password" id="contrasena" required>
-                    </div>
-
-                    <button type="submit">Registrarse</button>
-                </form>
-
-                <p id="bienvenida"></p>
-
-                <div class="links-footer">
-                    <a href="/iniciar_sesion">¿Ya tienes cuenta? ¡Logueate aqui!</a>
-                    <a href="/">← Volver a Inicio</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    <h1>Crea tu Cuenta</h1>
     
+    <form id="formulario-registro">
+        <div>
+            <label>Nombre Completo:</label>
+            <input type="text" id="nombre" required>
+        </div>
+        <br>
+        <div>
+            <label>Correo:</label>
+            <input type="email" id="correo" required>
+        </div>
+        <br>
+        <div>
+            <label>Teléfono:</label>
+            <input type="text" id="telefono" required>
+        </div>
+        <br>
+        <div>
+            <label>Usuario (6-10 caracteres):</label>
+            <input type="text" id="usuario" required>
+        </div>
+        <br>
+        <div>
+            <label>Contraseña (8-15 caracteres):</label>
+            <input type="password" id="contrasena" required>
+        </div>
+        <br>
+        <button type="submit">Registrarse</button>
+    </form>
+
+    <p id="mensaje"></p>
+    <p><a href="/iniciar_sesion">¿Ya tienes cuenta? Inicia sesion aqui</a></p>
+    <p><a href="/">← Volver al inicio</a></p>
+
     <script>
-        document.getElementById("formulario-nuevo").addEventListener("submit", async function (e){
-            e.preventDefault();
-            const nombre = document.getElementById("nombre").value;
-            const telefono = document.getElementById("telefono").value;
-            const correo = document.getElementById("correo").value;
-            const usuario = document.getElementById("usuario").value;
-            const contrasena = document.getElementById("contrasena").value;
-            
-            const respuesta = await fetch("http://127.0.0.1:8000/sign_up",{
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({nombre: nombre, telefono: telefono,correo: correo, usuario: usuario, contrasena: contrasena })
-            });
-            
-            const datos_recibidos = await respuesta.json();
-            
-            if (respuesta.ok){
-                sessionStorage.setItem("mensajeBienvenida", datos_recibidos.mensaje);
-                sessionStorage.setItem("miTokenJWT", datos_recibidos.token);
-                window.location.href = "/interface";
-            } else {
-                document.getElementById("bienvenida").innerText = "Error: " + JSON.stringify(datos_recibidos.detail);
-                document.getElementById("bienvenida").style.color = "#ffb4ab";
-            }
+    document.getElementById("formulario-registro").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const nombre = document.getElementById("nombre").value;
+        const correo = document.getElementById("correo").value;
+        const telefono = document.getElementById("telefono").value;
+        const usuario = document.getElementById("usuario").value;
+        const contrasena = document.getElementById("contrasena").value;
+
+        const respuesta = await fetch("http://127.0.0.1:8000/sign_up", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre, correo, telefono, usuario, contrasena })
         });
+
+        const datos = await respuesta.json();
+
+        if (respuesta.ok) {
+            sessionStorage.setItem("miTokenJWT", datos.token);
+            window.location.href = "/workspace";
+        } else {
+            document.getElementById("mensaje").innerText = "Error: " + datos.detail;
+            document.getElementById("mensaje").style.color = "red";
+        }
+    });
     </script>
 </body>
 </html>
