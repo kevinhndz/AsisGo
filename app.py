@@ -16,8 +16,9 @@ from models.sesion_qr import generar_nuevo_token, token_es_valido
 from models.security_guard import MarcarAsistencia
 from models.tablas import TablaAsistencia
 
-
-
+import os
+import smtplib
+from email.mime.text import MIMEText
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -434,8 +435,8 @@ def obtener_asistencia_hoy(
     ausentes = [e for e in todos_los_estudiantes if e.id_estudiante not in ids_presentes_hoy]
 
     return {
-        "presentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in presentes],
-        "ausentes": [{"nombre": e.nombre, "modalidad": e.modalidad} for e in ausentes]
+        "presentes": [{"nombre": e.nombre, "modalidad": e.modalidad, "numero_cuenta": e.numero_cuenta} for e in presentes],
+        "ausentes": [{"nombre": e.nombre, "modalidad": e.modalidad, "numero_cuenta": e.numero_cuenta} for e in ausentes]
     }
     
 
@@ -630,3 +631,85 @@ def editar_asistencia_manual(
 
     base_datos.commit()
     return {"mensaje": "Asistencia actualizada correctamente."}
+
+
+# --- Enviar enlace de grabación de Teams a los estudiantes de la materia ---
+class EnviarVideoRequest(BaseModel):
+    video_url: str
+
+@app.post("/materia/{id_materia}/enviar_video")
+def enviar_video_clase(
+    id_materia: int,
+    datos_envio: EnviarVideoRequest,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    # Verificar que la materia le pertenezca al profesor
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Esa materia no te pertenece o no existe."
+        )
+
+    # Buscar estudiantes de la materia
+    estudiantes = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_materia == id_materia
+    ).all()
+
+    if not estudiantes:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No hay estudiantes inscritos en esta materia para enviarles el video."
+        )
+
+    correos = [est.correo for est in estudiantes if est.correo]
+    if not correos:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ninguno de los estudiantes inscritos tiene correo registrado."
+        )
+
+    # Configuración de email desde variables de entorno con fallbacks
+    smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USER", "")
+    smtp_password = os.getenv("SMTP_PASSWORD", "")
+
+    # Mensaje a enviar
+    cuerpo = (
+        f"Hola, estudiante.\n\n"
+        f"El profesor ha compartido el enlace de la clase grabada en Teams para la materia '{materia.nombre}':\n\n"
+        f"{datos_envio.video_url}\n\n"
+        f"Saludos."
+    )
+    msg = MIMEText(cuerpo)
+    msg['Subject'] = f"Grabacion de Teams: {materia.nombre}"
+    msg['From'] = smtp_user if smtp_user else "asisgo-no-reply@uph.edu"
+    msg['To'] = ", ".join(correos)
+
+    # Si hay credenciales de SMTP configuradas, intentar el envío
+    if smtp_user and smtp_password:
+        try:
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_password)
+                server.sendmail(msg['From'], correos, msg.as_string())
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error al enviar correo SMTP: {str(e)}"
+            )
+    else:
+        # Modo debug/fallback si no hay servidor SMTP configurado
+        print(f"SMTP no configurado en .env. Se simulo el envio a: {correos}. Contenido: {datos_envio.video_url}")
+
+    return {
+        "mensaje": f"Enlace del video enviado exitosamente a {len(correos)} estudiantes.",
+        "correos": correos,
+        "simulado": not (smtp_user and smtp_password)
+    }
