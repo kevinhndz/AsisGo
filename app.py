@@ -7,8 +7,21 @@ from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 from math import radians, sin, cos, sqrt, atan2
 import socket
+import os
 
-# Detecta la IP local de la red (para que el QR funcione desde celulares en la misma WiFi)
+# ------------------------------------------------------------------
+
+
+# BASE_URL: la direccion que se mete dentro del QR para que el celular
+# del estudiante sepa a donde conectarse.
+#
+# - En produccion defino lo que es
+#   BASE_URL en el .env del servidor, ej: BASE_URL=https://asisgo.tudominio.com
+#   y listo, nunca mas se toca este archivo al desplegar.
+#
+#
+# ------------------------------------------------------------------
+
 def obtener_ip_local() -> str:
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -19,7 +32,14 @@ def obtener_ip_local() -> str:
     except Exception:
         return "127.0.0.1"
 
-IP_LOCAL = obtener_ip_local()
+def obtener_base_url() -> str:
+    base_url_env = os.getenv("BASE_URL")
+    if base_url_env:
+        return base_url_env.rstrip("/")
+    # Fallback solo para desarrollo local
+    return f"http://{obtener_ip_local()}:8000"
+
+BASE_URL = obtener_base_url()
 
 # Registro de clases en curso: { id_materia: datetime_inicio }
 # Se usa para mostrar la tabla de asistencia en vivo (máx 3 horas)
@@ -66,7 +86,6 @@ def mostrar_login(request: Request):
     return templates.TemplateResponse(request, 'login.html')
 
 
-# FIX #1: el archivo se llama signup.html (sin guion bajo)
 @app.get('/sign_up', response_class=HTMLResponse)
 def mostrar_signup(request: Request):
     return templates.TemplateResponse(request, 'signup.html')
@@ -82,9 +101,6 @@ def mostrar_workspace(request: Request):
     return templates.TemplateResponse(request, 'workspace.html')
 
 
-# ============================================================
-# RUTAS REST — autenticacion del profesor
-# ============================================================
 
 @app.post('/login', status_code=status.HTTP_200_OK)
 def login(
@@ -327,8 +343,8 @@ def generar_qr_token(
         CLASES_EN_CURSO[id_materia] = datetime.utcnow()
 
     resultado = generar_nuevo_token(id_materia)
-    # Incluir la IP local para que la URL del QR funcione desde celulares
-    resultado["ip_local"] = IP_LOCAL
+    # Incluir la base_url para que la URL del QR funcione desde cualquier celular
+    resultado["base_url"] = BASE_URL
     return resultado
 
 
@@ -339,7 +355,7 @@ def qr_pantalla(id_materia: int, request: Request):
     return templates.TemplateResponse(
         request,
         "qr_pantalla.html",
-        {"id_materia": id_materia, "ip_local": IP_LOCAL}
+        {"id_materia": id_materia, "base_url": BASE_URL}
     )
 
 
@@ -355,7 +371,7 @@ def generar_qr_token_publico(id_materia: int):
             detail="No hay una clase activa para esta materia."
         )
     resultado = generar_nuevo_token(id_materia)
-    resultado["ip_local"] = IP_LOCAL
+    resultado["base_url"] = BASE_URL
     return resultado
 
 

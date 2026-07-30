@@ -100,9 +100,9 @@
     <p class="aviso">El código cambia automáticamente cada 15 segundos</p>
 
     <script>
-    // El id_materia e ip_local vienen inyectados por Jinja2
+    // El id_materia y base_url vienen inyectados por Jinja2
     const ID_MATERIA = {{ id_materia }};
-    const IP_LOCAL   = "{{ ip_local }}";
+    const BASE_URL   = "{{ base_url }}";
 
     let intervalo      = null;
     let intervaloBarra = null;
@@ -116,7 +116,7 @@
         if (!resp.ok) { wrapper.classList.remove("renovando"); return; }
 
         const datos = await resp.json();
-        const urlQR = `http://${IP_LOCAL}:8000/marcar?id_materia=${ID_MATERIA}&token=${datos.token}`;
+        const urlQR = `${datos.base_url}/marcar?id_materia=${ID_MATERIA}&token=${datos.token}`;
 
         const cont = document.getElementById("contenedor-qr");
         cont.innerHTML = "";
