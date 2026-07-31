@@ -3,14 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asis GO+ - Inicio</title>
-    <link rel="stylesheet" href="/static/styless.css">
+    <title>Asis GO+ — Inicio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: { extend: { colors: {
+            "background":"#111412","surface":"#111412","surface-container":"#1d201e",
+            "surface-container-low":"#191c1a","surface-container-high":"#272b28",
+            "on-background":"#e1e3df","on-surface":"#e1e3df","on-surface-variant":"#bfc9c1",
+            "primary":"#92d5b2","primary-fixed":"#adf1cd","on-primary":"#003825",
+            "on-primary-fixed":"#002114","outline":"#89938c","outline-variant":"#404943"
+        }}}
+    }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
+        @keyframes subtleZoom { 0%{transform:scale(1);}100%{transform:scale(1.06);} }
+        .zoom-bg { animation: subtleZoom 18s ease-in-out infinite alternate; }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+        .fade-up { animation: fadeUp 0.7s ease forwards; }
+        .fade-up-2 { animation: fadeUp 0.7s 0.15s ease forwards; opacity:0; }
+        .fade-up-3 { animation: fadeUp 0.7s 0.3s ease forwards; opacity:0; }
+    </style>
 </head>
-<body>
-    <h1>Asis GO+</h1>
-    <p>Sistema de gestión de asistencia e impartición híbrida</p>
-    
-    <h2>Eres profesor?</h2>
-    <p><a href="/iniciar_sesion">Inicia sesión aquí</a> o <a href="/sign_up">crea una cuenta</a></p>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+
+<!-- Background -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 zoom-bg opacity-20" style="background:url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat; filter:grayscale(1);"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background"></div>
+    <div class="absolute top-1/4 right-1/4 w-96 h-96 bg-primary opacity-10 rounded-full blur-3xl"></div>
+    <div class="absolute bottom-1/4 left-1/4 w-64 h-64 bg-primary opacity-5 rounded-full blur-3xl"></div>
+</div>
+
+<!-- Nav -->
+<header class="relative z-10 flex items-center justify-between px-6 md:px-16 py-5 border-b border-outline-variant/10 bg-surface/60 backdrop-blur-xl">
+    <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-primary-fixed rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
+            <span class="material-symbols-outlined text-on-primary-fixed" style="font-size:20px; font-variation-settings:'FILL' 1;">rocket_launch</span>
+        </div>
+        <span class="text-xl font-black tracking-tighter">Asis <span class="text-primary">GO+</span></span>
+    </div>
+    <div class="flex items-center gap-3">
+        <a href="/iniciar_sesion" class="text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors px-4 py-2">Inicia sesión</a>
+        <a href="/sign_up" class="bg-primary text-on-primary text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-primary-fixed transition-all hover:scale-105 active:scale-95 shadow-md shadow-primary/20">
+            Crear cuenta
+            <span class="material-symbols-outlined text-base ml-1 align-middle">arrow_forward</span>
+        </a>
+    </div>
+</header>
+
+<!-- Hero -->
+<main class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
+    <div class="fade-up flex items-center gap-3 mb-6 justify-center">
+        <div class="h-0.5 w-10 bg-primary rounded-full"></div>
+        <span class="text-xs font-bold text-primary tracking-widest uppercase">Innovación Educativa</span>
+        <div class="h-0.5 w-10 bg-primary rounded-full"></div>
+    </div>
+
+    <h1 class="fade-up-2 text-5xl md:text-7xl font-black tracking-tighter text-on-background max-w-3xl leading-tight mb-6">
+        Asistencia sin <span class="text-primary">fricciones</span>
+    </h1>
+
+    <p class="fade-up-3 text-base md:text-lg text-on-surface-variant max-w-xl mb-10 leading-relaxed">
+        Sistema de gestión de asistencia e impartición híbrida. QR inteligente, presencia en tiempo real, grabaciones automáticas.
+    </p>
+
+    <div class="fade-up-3 flex flex-col sm:flex-row gap-4 justify-center w-full max-w-sm">
+        <a href="/iniciar_sesion"
+            class="group relative bg-primary-fixed text-on-primary-fixed font-bold px-8 py-4 rounded-xl overflow-hidden hover:shadow-[0_0_30px_rgba(146,213,178,0.35)] transition-all hover:scale-105 active:scale-95 text-sm uppercase tracking-widest flex items-center justify-center gap-2">
+            Inicia sesión
+            <span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
+        </a>
+        <a href="/sign_up"
+            class="bg-surface-container text-on-surface font-bold px-8 py-4 rounded-xl hover:bg-surface-container-high transition-all active:scale-95 text-sm uppercase tracking-widest flex items-center justify-center gap-2 border border-outline-variant/30">
+            Crear cuenta
+        </a>
+    </div>
+
+    <!-- Feature chips -->
+    <div class="fade-up-3 mt-16 flex flex-wrap justify-center gap-3 max-w-lg">
+        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">qr_code_scanner</span> QR dinámico
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">location_on</span> Validación por ubicación
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">videocam</span> Grabaciones a correo
+        </div>
+        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
+            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">devices</span> Modalidad híbrida
+        </div>
+    </div>
+</main>
+
+<footer class="relative z-10 border-t border-outline-variant/10 py-5 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-on-surface-variant">
+    <span class="font-bold text-primary">Asis GO+</span>
+    <span>© 2025 Todos los derechos reservados.</span>
+</footer>
+
 </body>
 </html>
