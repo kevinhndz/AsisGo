@@ -24,14 +24,13 @@ tailwind.config = {
   .bottom-cutout { border-top-left-radius: 2rem; }
 </style>
 </head>
-<body class="bg-[#f0ede6] min-h-screen flex items-center justify-center p-2 sm:p-4 md:p-8">
+<!-- Fondo oscuro directo en body, sin wrapper claro -->
+<body class="bg-bg-dark min-h-screen flex flex-col">
 
-<main class="w-full max-w-7xl mx-auto bg-bg-dark rounded-[2.5rem] p-2 sm:p-4 md:p-6 overflow-hidden flex flex-col min-h-[90vh] md:min-h-[800px] shadow-2xl relative">
-
-  <!-- Nav -->
-  <header class="flex justify-between items-start z-20 relative px-2 md:px-4 pt-2 md:pt-4">
+  <!-- Nav — sobre fondo oscuro, sin bg propio -->
+  <header class="flex justify-between items-center z-20 relative px-6 md:px-10 pt-5 pb-4">
     <!-- Logo -->
-    <div class="flex items-center gap-3 bg-bg-dark rounded-br-2xl pr-4 pb-2">
+    <div class="flex items-center gap-3">
       <div class="w-8 h-8 rounded-lg border-2 border-[#e5e5e5] flex items-center justify-center">
         <svg class="h-4 w-4 text-[#e5e5e5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
@@ -40,18 +39,10 @@ tailwind.config = {
       <span class="text-white font-medium text-lg tracking-wide">ASIS GO+</span>
     </div>
 
-    <!-- Nav pill — desktop -->
-    <nav class="hidden md:flex bg-bg-light px-8 py-3 rounded-full shadow-sm items-center gap-8 -mt-2">
-      <a class="text-sm font-medium text-gray-800 hover:text-black transition-colors" href="/">Inicio</a>
-      <a class="text-sm font-medium text-gray-600 hover:text-black transition-colors" href="#">Servicios</a>
-      <a class="text-sm font-medium text-gray-600 hover:text-black transition-colors" href="#">Precios</a>
-      <a class="text-sm font-medium text-gray-600 hover:text-black transition-colors" href="#">Contacto</a>
-    </nav>
-
-    <!-- Right actions -->
-    <div class="flex items-center gap-3 bg-bg-dark rounded-bl-2xl pl-4 pb-2">
+    <!-- Right actions — sin nav pills -->
+    <div class="flex items-center gap-3">
       <a href="/iniciar_sesion"
-         class="hidden md:flex items-center gap-2 text-white border border-gray-600 rounded-full px-4 py-2 text-sm hover:bg-gray-800 transition-colors">
+         class="flex items-center gap-2 text-white border border-gray-600 rounded-full px-4 py-2 text-sm hover:bg-gray-800 transition-colors">
         Iniciar sesión
       </a>
       <a href="/sign_up"
@@ -66,12 +57,12 @@ tailwind.config = {
     </div>
   </header>
 
-  <!-- Hero -->
-  <section class="bg-bg-light flex-1 rounded-[2.5rem] mt-[-3rem] md:mt-[-4rem] flex flex-col md:flex-row relative z-10 pt-20 md:pt-24 pb-8 md:pb-12 px-6 md:px-16 overflow-hidden">
+  <!-- Hero — fondo claro ocupa el resto -->
+  <section class="bg-bg-light flex-1 rounded-[2.5rem] mx-4 mb-4 flex flex-col md:flex-row relative z-10 pt-16 md:pt-20 pb-20 px-6 md:px-16 overflow-hidden">
     <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
 
     <!-- Left: copy -->
-    <div class="flex-1 flex flex-col justify-center relative z-20 max-w-2xl mt-12 md:mt-0">
+    <div class="flex-1 flex flex-col justify-center relative z-20 max-w-2xl">
       <h1 class="text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.1] font-semibold text-gray-900 mb-6 tracking-tight">
         Asistencia sin
         <span class="flex items-center flex-wrap gap-4 mt-2">
@@ -103,7 +94,6 @@ tailwind.config = {
       </div>
     </div>
 
-    <!-- Right: graphic -->
     <div class="flex-1 relative z-20 flex justify-center items-center mt-12 md:mt-0 min-h-[300px] md:min-h-0">
       <div class="relative w-full max-w-[500px] aspect-square flex items-center justify-center">
         <img
@@ -113,16 +103,15 @@ tailwind.config = {
         <div class="absolute inset-0 bg-gradient-to-t from-bg-light/20 to-transparent mix-blend-overlay"></div>
       </div>
     </div>
+
+  
+    <div class="absolute bottom-0 right-0 bg-bg-dark bottom-cutout pl-6 pt-4 pb-4 pr-6 sm:pr-8 flex items-center gap-4 text-white">
+      <a href="/iniciar_sesion" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Iniciar Sesión</a>
+      <div class="flex bg-gray-800 rounded-full p-1 border border-gray-700">
+        <a href="/sign_up" class="px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black shadow-sm hover:bg-gray-100 transition-colors">Registrar</a>
+      </div>
+    </div>
   </section>
 
-  <!-- Bottom bar -->
-  <div class="absolute bottom-0 right-0 bg-bg-dark z-30 bottom-cutout pl-6 pt-4 pb-4 pr-6 sm:pr-8 flex items-center gap-4 text-white">
-    <a href="/iniciar_sesion" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Iniciar Sesión</a>
-    <div class="flex bg-gray-800 rounded-full p-1 border border-gray-700">
-      <a href="/sign_up" class="px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black shadow-sm hover:bg-gray-100 transition-colors">Registrar</a>
-    </div>
-  </div>
-
-</main>
 </body>
 </html>
