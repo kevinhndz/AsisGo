@@ -2,308 +2,291 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Clases — Asis GO+</title>
-    <link rel="stylesheet" href="/static/styless.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: { extend: { colors: {
+            "background":"#111412","surface":"#111412","surface-container":"#1d201e",
+            "surface-container-low":"#191c1a","surface-container-high":"#272b28",
+            "surface-container-lowest":"#0b0f0d","on-background":"#e1e3df",
+            "on-surface":"#e1e3df","on-surface-variant":"#bfc9c1",
+            "primary":"#92d5b2","primary-fixed":"#adf1cd","on-primary":"#003825",
+            "on-primary-fixed":"#002114","outline":"#89938c","outline-variant":"#404943",
+            "error":"#f87171"
+        }}}
+    }
+    </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
     <style>
-        .tabla-estudiantes {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.85rem;
-        }
-        .tabla-estudiantes th {
-            background: rgba(255,209,101,0.12);
-            color: #ffd165;
-            padding: 10px 12px;
-            text-align: left;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .tabla-estudiantes td {
-            padding: 10px 12px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            color: #ece1d1;
-            vertical-align: middle;
-        }
-        .tabla-estudiantes tr:hover td { background: rgba(255,255,255,0.03); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
+        input:-webkit-autofill, select:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #191c1a inset !important; -webkit-text-fill-color:#e1e3df !important; }
+        select option { background:#1d201e; color:#e1e3df; }
 
-        .seccion-clase {
-            background: rgba(23,23,23,0.45);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 1rem;
-            padding: 1.5rem 2rem;
-            margin-bottom: 1.5rem;
-        }
-        .seccion-clase h3 {
-            font-family: 'Geist', sans-serif;
-            color: #ffd165;
-            margin-top: 0;
-            font-size: 1.1rem;
-        }
+        /* Tabla */
+        .t-head th { background:rgba(146,213,178,0.08); color:#92d5b2; padding:10px 14px; text-align:left; font-weight:700; font-size:0.75rem; letter-spacing:0.05em; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.08); }
+        .t-body td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); color:#e1e3df; font-size:0.85rem; vertical-align:middle; }
+        .t-body tr:hover td { background:rgba(255,255,255,0.02); }
+        .t-vivo th { background:rgba(146,213,178,0.1); color:#92d5b2; padding:8px 12px; text-align:left; font-weight:700; font-size:0.75rem; border-bottom:1px solid rgba(146,213,178,0.2); }
+        .t-vivo td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85rem; color:#e1e3df; }
 
-        /* Modal QR */
-        #modal-qr {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.75);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
-        #modal-qr.activo { display: flex; }
-        .qr-card {
-            background: #1e1a10;
-            border: 1px solid rgba(255,209,101,0.3);
-            border-radius: 1.25rem;
-            padding: 2rem;
-            text-align: center;
-            min-width: 280px;
-        }
-        #contenedor-qr canvas, #contenedor-qr img { border-radius: 0.5rem; }
-        #contador-qr { font-size: 0.8rem; color: #d3c5ac; margin-top: 0.75rem; }
+        /* Modales */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+        .modal-overlay.activo { display:flex; }
 
-        .qr-botones { display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: center; }
-        .qr-botones button { width: auto; padding: 0.6rem 1.25rem; }
-        .btn-vista-grande {
-            background: rgba(255,209,101,0.15) !important;
-            border: 1px solid rgba(255,209,101,0.4) !important;
-            color: #ffd165 !important;
-        }
-
-        /* Modal Form */
-        #modal-form {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.75);
-            z-index: 100;
-            align-items: center;
-            justify-content: center;
-        }
-        #modal-form.activo { display: flex; }
-        .form-card {
-            background: #1e1a10;
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 1.25rem;
-            padding: 2rem;
-            width: 100%;
-            max-width: 420px;
-        }
-        .form-card h3 { font-family: 'Geist', sans-serif; color: #ece1d1; margin-top: 0; }
-        .form-card label { display: block; font-size: 0.75rem; color: #d3c5ac; margin-bottom: 4px; margin-top: 12px; }
-        .form-card input, .form-card select { width: 100%; box-sizing: border-box; }
-        .btn-cancelar { background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #d3c5ac; margin-top: 0.5rem; }
-
-        .btn-accion { padding: 4px 10px; font-size: 0.75rem; width: auto; margin: 0 2px; }
-        .btn-editar { background: rgba(255,209,101,0.15); color: #ffd165; border-color: rgba(255,209,101,0.3); }
-        .btn-eliminar { background: rgba(220,50,50,0.15); color: #ff7070; border-color: rgba(220,50,50,0.3); }
-
-        .lista-clases { list-style: none; padding: 0; margin: 0; }
-        .lista-clases li {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 1rem 1.25rem;
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 0.75rem; margin-bottom: 0.75rem;
-            background: rgba(23,23,23,0.4);
-        }
-        .clase-info strong { color: #ece1d1; font-family: 'Geist', sans-serif; }
-        .clase-info span { font-size: 0.8rem; color: #d3c5ac; display: block; margin-top: 2px; }
-
-        .nav-bar { margin-bottom: 1.5rem; font-size: 0.9rem; }
-        .nav-bar a { margin-right: 1rem; }
-
-        /* Tabla asistencia en vivo */
-        .tabla-vivo {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-        }
-        .tabla-vivo th {
-            background: rgba(109,255,176,0.1);
-            color: #6dffb0;
-            padding: 8px 12px;
-            text-align: left;
-            font-weight: 700;
-            border-bottom: 1px solid rgba(109,255,176,0.2);
-        }
-        .tabla-vivo td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #ece1d1; }
-        .badge-presente { color: #6dffb0; font-weight: 700; }
-        .badge-ausente  { color: #ff7070; }
-
-        .semana-header { font-size: 0.7rem; color: #ffd165; text-align: center; background: rgba(255,209,101,0.08); }
-        .celda-asistencia { text-align: center; font-size: 0.85rem; }
-        .presente { color: #6dffb0; }
-        .ausente  { color: #ff7070; }
-        .sin-datos { color: rgba(211,197,172,0.3); }
-
-        .grabacion-row { display: flex; gap: 0.75rem; align-items: center; }
-        .grabacion-row input { flex: 1; }
-        .grabacion-row button { width: auto; white-space: nowrap; }
-
-        .badge-en-curso {
-            display: inline-block;
-            background: rgba(109,255,176,0.15);
-            border: 1px solid rgba(109,255,176,0.3);
-            color: #6dffb0;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 2px 10px;
-            border-radius: 9999px;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+        .modal-card { animation: fadeUp 0.25s ease; }
     </style>
 </head>
-<body>
+<body class="bg-background text-on-background min-h-screen">
 
-<div style="max-width:960px; margin:0 auto; padding: 2rem 1rem;">
+<!-- ── HEADER ─────────────────────────────────── -->
+<header class="bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 px-6 md:px-10 h-16 flex items-center justify-between sticky top-0 z-40">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-primary-fixed rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-primary-fixed" style="font-size:18px; font-variation-settings:'FILL' 1;">rocket_launch</span>
+        </div>
+        <span class="font-black tracking-tighter text-lg">Asis <span class="text-primary">GO+</span></span>
+    </div>
+    <nav class="flex items-center gap-4 text-sm">
+        <a href="/interface" class="flex items-center gap-1.5 text-on-surface-variant hover:text-primary transition-colors font-semibold">
+            <span class="material-symbols-outlined text-base">add_circle</span> Nueva clase
+        </a>
+        <a href="/" class="flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface transition-colors">
+            <span class="material-symbols-outlined text-base">logout</span> Salir
+        </a>
+    </nav>
+</header>
 
-    <div class="nav-bar">
-        <a href="/interface">← Panel</a>
-        <a href="/">Salir</a>
+<div class="max-w-5xl mx-auto px-4 md:px-8 py-10">
+
+<!-- ════ VISTA LISTA ════ -->
+<div id="vista-lista">
+    <div class="mb-8">
+        <div class="flex items-center gap-3 mb-2">
+            <div class="h-0.5 w-8 bg-primary rounded-full"></div>
+            <span class="text-xs font-bold text-primary tracking-widest uppercase">Profesor</span>
+        </div>
+        <h1 class="text-4xl font-black tracking-tighter text-on-background">Mis Clases</h1>
+    </div>
+    <div id="contenedor-materias"><p class="text-on-surface-variant text-sm">Cargando clases...</p></div>
+</div>
+
+<!-- ════ VISTA DETALLE ════ -->
+<div id="vista-detalle" style="display:none;">
+    <button onclick="volverALista()" class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors font-semibold mb-8 group">
+        <span class="material-symbols-outlined text-base group-hover:-translate-x-1 transition-transform">arrow_back</span> Volver a mis clases
+    </button>
+    <div class="mb-2">
+        <h1 id="titulo-clase" class="text-4xl font-black tracking-tighter text-on-background"></h1>
+        <p id="link-inscripcion" class="text-xs text-on-surface-variant mt-2"></p>
     </div>
 
-    <!-- ════ LISTA DE CLASES ════ -->
-    <div id="vista-lista">
-        <h1>Mis Clases</h1>
-        <div id="contenedor-materias"><p>Cargando clases...</p></div>
-    </div>
-
-    <!-- ════ DETALLE DE CLASE ════ -->
-    <div id="vista-detalle" style="display:none;">
-        <button onclick="volverALista()" style="width:auto; padding:0.5rem 1.2rem; margin-bottom:1.5rem;">← Volver</button>
-        <h1 id="titulo-clase"></h1>
-        <p id="link-inscripcion" style="font-size:0.85rem;"></p>
-
-        <!-- 1. QR -->
-        <div class="seccion-clase">
-            <h3>📱 Código QR de Asistencia</h3>
-            <p style="font-size:0.875rem; color:#d3c5ac; margin-top:0;">
-                Muestra el QR al inicio de la clase. Se renueva cada 15 segundos automáticamente.
-            </p>
-            <button onclick="abrirModalQR()" style="width:auto; padding:0.75rem 2rem;">
-                Generar QR
-            </button>
-            <button onclick="configurarUbicacionAula()" style="width:auto; padding:0.75rem 1.5rem; margin-left:0.5rem;">
-                📍 Configurar ubicación del aula
-            </button>
-            <p id="estado-ubicacion-aula" style="font-size:0.8rem; margin-top:0.6rem;"></p>
-        </div>
-
-        <!-- 2. Tabla en vivo (solo si clase en curso) -->
-        <div class="seccion-clase" id="seccion-vivo" style="display:none;">
-            <h3>🟢 Asistencia en Vivo <span class="badge-en-curso">CLASE EN CURSO</span></h3>
-            <p style="font-size:0.8rem; color:#d3c5ac; margin-top:0;">
-                Esta tabla desaparece 3 horas después de generar el primer QR.
-            </p>
-            <div id="contenedor-vivo"><p>Cargando...</p></div>
-        </div>
-
-        <!-- 3. Estudiantes inscritos -->
-        <div class="seccion-clase">
-            <h3>👥 Estudiantes Inscritos</h3>
-            <button onclick="abrirModalAgregar()" style="width:auto; padding:0.6rem 1.4rem; margin-bottom:1rem;">
-                + Agregar Estudiante
-            </button>
-            <div id="contenedor-tabla"><p>Cargando...</p></div>
-        </div>
-
-        <!-- 4. Publicar grabación -->
-        <div class="seccion-clase">
-            <h3>🎬 Publicar Grabación</h3>
-            <p style="font-size:0.875rem; color:#d3c5ac; margin-top:0;">
-                Pega la URL de Teams, Drive u OneDrive. Se enviará por correo a todos los estudiantes.
-            </p>
-            <div class="grabacion-row">
-                <input type="text" id="url-grabacion" placeholder="https://...">
-                <button onclick="publicarGrabacion()" style="width:auto; padding:0.75rem 1.5rem;">
-                    Publicar y enviar correos
+    <!-- ── 1. QR ── -->
+    <div class="bg-surface-container rounded-2xl p-6 mb-4 relative overflow-hidden border border-outline-variant/10">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+        <div class="flex items-start justify-between flex-wrap gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;">qr_code_scanner</span>
+                    <h3 class="font-bold text-on-background">Código QR de Asistencia</h3>
+                </div>
+                <p class="text-xs text-on-surface-variant max-w-xs">Muestra el QR al inicio de la clase. Se renueva cada 15 segundos automáticamente.</p>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <button onclick="abrirModalQR()"
+                    class="flex items-center gap-2 bg-primary-fixed text-on-primary-fixed font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-primary transition-all active:scale-95 tracking-widest uppercase shadow-md shadow-primary/20">
+                    <span class="material-symbols-outlined text-base">qr_code</span> Generar QR
+                </button>
+                <button onclick="configurarUbicacionAula()"
+                    class="flex items-center gap-2 bg-surface-container-high text-on-surface-variant font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-outline-variant/20 transition-all active:scale-95 border border-outline-variant/20">
+                    <span class="material-symbols-outlined text-base">location_on</span> Config. Aula
                 </button>
             </div>
-            <p id="estado-grabacion" style="margin-top:0.75rem; font-size:0.85rem;"></p>
         </div>
+        <p id="estado-ubicacion-aula" class="text-xs mt-3 min-h-[16px]"></p>
     </div>
 
-</div>
+    <!-- ── 2. TABLA EN VIVO ── -->
+    <div id="seccion-vivo" style="display:none;" class="bg-surface-container rounded-2xl p-6 mb-4 relative overflow-hidden border border-primary/20">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"></div>
+        <div class="flex items-center gap-2 mb-1">
+            <span class="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+            <h3 class="font-bold text-on-background">Asistencia en Vivo</h3>
+            <span class="text-xs bg-primary/15 text-primary border border-primary/30 rounded-full px-2.5 py-0.5 font-bold tracking-wider uppercase">Clase en curso</span>
+        </div>
+        <p class="text-xs text-on-surface-variant mb-4">Se actualiza cada 10 s. Desaparece 3 horas después del primer QR.</p>
+        <div id="contenedor-vivo"><p class="text-sm text-on-surface-variant">Cargando...</p></div>
+    </div>
+
+    <!-- ── 3. ESTUDIANTES ── -->
+    <div class="bg-surface-container rounded-2xl p-6 mb-4 relative overflow-hidden border border-outline-variant/10">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent"></div>
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;">group</span>
+                <h3 class="font-bold text-on-background">Estudiantes Inscritos</h3>
+            </div>
+            <button onclick="abrirModalAgregar()"
+                class="flex items-center gap-1.5 bg-surface-container-high text-primary font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-outline-variant/20 transition-all active:scale-95 border border-primary/20">
+                <span class="material-symbols-outlined text-base">person_add</span> Agregar Estudiante
+            </button>
+        </div>
+        <div id="contenedor-tabla" class="overflow-x-auto"><p class="text-sm text-on-surface-variant">Cargando...</p></div>
+    </div>
+
+    <!-- ── 4. GRABACIÓN ── -->
+    <div class="bg-surface-container rounded-2xl p-6 relative overflow-hidden border border-outline-variant/10">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-outline-variant/20 to-transparent"></div>
+        <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;">videocam</span>
+            <h3 class="font-bold text-on-background">Publicar Grabación</h3>
+        </div>
+        <p class="text-xs text-on-surface-variant mb-4">Pega el URL de Teams, Drive u OneDrive. Se enviará por correo a todos los estudiantes.</p>
+        <div class="flex gap-2 flex-wrap">
+            <input type="text" id="url-grabacion" placeholder="https://..."
+                class="flex-1 min-w-0 bg-surface-container-low rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
+            <button onclick="publicarGrabacion()"
+                class="flex items-center gap-1.5 bg-primary-fixed text-on-primary-fixed font-bold text-xs px-5 py-3 rounded-xl hover:bg-primary transition-all active:scale-95 tracking-widest uppercase shadow-md shadow-primary/20 whitespace-nowrap">
+                <span class="material-symbols-outlined text-base">send</span> Publicar y enviar
+            </button>
+        </div>
+        <p id="estado-grabacion" class="text-xs mt-3 min-h-[16px]"></p>
+    </div>
+</div><!-- /vista-detalle -->
+
+</div><!-- /container -->
 
 
 <!-- ════ MODAL QR ════ -->
-<div id="modal-qr">
-    <div class="qr-card">
-        <h3 style="color:#ffd165; font-family:'Geist',sans-serif; margin-top:0;">Código QR</h3>
-        <div id="contenedor-qr"></div>
-        <p id="contador-qr"></p>
-        <div class="qr-botones">
-            <button class="btn-vista-grande" onclick="abrirVistGrande()">🖥 Vista grande</button>
-            <button onclick="cerrarModalQR()" style="">Cerrar</button>
+<div id="modal-qr" class="modal-overlay">
+    <div class="modal-card bg-surface-container border border-primary/20 rounded-3xl p-8 text-center w-full max-w-xs shadow-2xl mx-4">
+        <h3 class="font-black text-xl tracking-tighter text-on-background mb-1">Código QR</h3>
+        <p class="text-xs text-on-surface-variant mb-5">Estudiantes: escanea para marcar asistencia</p>
+        <div class="bg-white rounded-2xl p-3 inline-block shadow-lg">
+            <div id="contenedor-qr"></div>
+        </div>
+        <p id="contador-qr" class="text-xs text-on-surface-variant mt-3"></p>
+        <div class="flex gap-2 mt-5 justify-center">
+            <button onclick="abrirVistGrande()"
+                class="flex items-center gap-1.5 bg-primary/15 text-primary border border-primary/30 font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-primary/25 transition-all active:scale-95">
+                <span class="material-symbols-outlined text-base">open_in_new</span> Vista grande
+            </button>
+            <button onclick="cerrarModalQR()"
+                class="flex items-center gap-1.5 bg-surface-container-high text-on-surface-variant font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-outline-variant/20 transition-all active:scale-95 border border-outline-variant/20">
+                <span class="material-symbols-outlined text-base">close</span> Cerrar
+            </button>
         </div>
     </div>
 </div>
 
 
-<!-- ════ MODAL FORM ════ -->
-<div id="modal-form">
-    <div class="form-card">
-        <h3 id="modal-form-titulo">Agregar Estudiante</h3>
-        <input type="hidden" id="form-id-estudiante" value="">
-        <label>Nombre Completo</label>
-        <input type="text"   id="form-nombre"    placeholder="Nombre completo">
-        <label>Correo</label>
-        <input type="email"  id="form-correo"    placeholder="correo@ejemplo.com">
-        <label>Teléfono</label>
-        <input type="text"   id="form-telefono"  placeholder="00000000">
-        <label>Número de Cuenta</label>
-        <input type="text"   id="form-cuenta"    placeholder="20210001234">
-        <label>Modalidad</label>
-        <select id="form-modalidad">
-            <option value="presencial">Presencial</option>
-            <option value="virtual">Virtual</option>
-        </select>
-        <p id="modal-form-mensaje" style="font-size:0.82rem; margin-top:0.75rem;"></p>
-        <button onclick="guardarEstudiante()" style="margin-top:1rem;">Guardar</button>
-        <button class="btn-cancelar" onclick="cerrarModalForm()">Cancelar</button>
+<!-- ════ MODAL FORM ESTUDIANTE ════ -->
+<div id="modal-form" class="modal-overlay">
+    <div class="modal-card bg-surface-container border border-outline-variant/20 rounded-3xl p-7 w-full max-w-md shadow-2xl mx-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+        <h3 id="modal-form-titulo" class="font-black text-xl tracking-tighter text-on-background mb-5">Agregar Estudiante</h3>
+        <input type="hidden" id="form-id-estudiante">
+        <div class="flex flex-col gap-3">
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1 tracking-widest uppercase group-focus-within:text-primary transition-colors">Nombre</label>
+                <input id="form-nombre" type="text" placeholder="Nombre completo"
+                    class="w-full bg-surface-container-low rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
+            </div>
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1 tracking-widest uppercase group-focus-within:text-primary transition-colors">Correo</label>
+                <input id="form-correo" type="email" placeholder="correo@universidad.edu"
+                    class="w-full bg-surface-container-low rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
+            </div>
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1 tracking-widest uppercase group-focus-within:text-primary transition-colors">Teléfono</label>
+                <input id="form-telefono" type="text" placeholder="+504 9999-9999"
+                    class="w-full bg-surface-container-low rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
+            </div>
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1 tracking-widest uppercase group-focus-within:text-primary transition-colors">Número de Cuenta</label>
+                <input id="form-cuenta" type="text" placeholder="20210001234"
+                    class="w-full bg-surface-container-low rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
+            </div>
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1 tracking-widest uppercase group-focus-within:text-primary transition-colors">Modalidad</label>
+                <select id="form-modalidad"
+                    class="w-full bg-surface-container-low rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all appearance-none cursor-pointer">
+                    <option value="presencial">Presencial</option>
+                    <option value="virtual">Virtual</option>
+                </select>
+            </div>
+        </div>
+        <p id="modal-form-mensaje" class="text-xs font-semibold text-center mt-3 min-h-[16px]"></p>
+        <div class="flex gap-2 mt-4">
+            <button onclick="guardarEstudiante()"
+                class="flex-1 bg-primary-fixed text-on-primary-fixed font-bold text-xs py-3.5 rounded-xl hover:bg-primary transition-all active:scale-95 tracking-widest uppercase shadow-md shadow-primary/20">
+                Guardar
+            </button>
+            <button onclick="cerrarModalForm()"
+                class="flex-1 bg-surface-container-high text-on-surface-variant font-bold text-xs py-3.5 rounded-xl hover:bg-outline-variant/20 transition-all active:scale-95 border border-outline-variant/20">
+                Cancelar
+            </button>
+        </div>
     </div>
 </div>
 
 
 <script>
+// ── Estado ──────────────────────────────────────────────────
 let idMateriaActual = null;
 let intervaloQR     = null;
 let intervaloVivo   = null;
 
-function tkn() { return sessionStorage.getItem("miTokenJWT"); }
-function hdrs() { return { "Content-Type": "application/json", "Authorization": "Bearer " + tkn() }; }
+function tkn()  { return sessionStorage.getItem("miTokenJWT"); }
+function hdrs() { return { "Content-Type":"application/json","Authorization":"Bearer "+tkn() }; }
 
-// ─── LISTA DE CLASES ──────────────────────────────────────
+// ── LISTA DE CLASES ──────────────────────────────────────────
 async function cargarClases() {
-    const resp = await fetch("/mis_materias", { headers: { "Authorization": "Bearer " + tkn() } });
+    const resp    = await fetch("/mis_materias", { headers:{"Authorization":"Bearer "+tkn()} });
     const materias = await resp.json();
-    const cont = document.getElementById("contenedor-materias");
+    const cont    = document.getElementById("contenedor-materias");
 
     if (!resp.ok || materias.length === 0) {
-        cont.innerHTML = "<p>No tienes clases registradas aún.</p>";
+        cont.innerHTML = `<div class="bg-surface-container rounded-2xl p-8 text-center border border-outline-variant/10">
+            <span class="material-symbols-outlined text-outline text-5xl mb-3 block">school</span>
+            <p class="text-on-surface-variant text-sm">No tienes clases registradas aún.</p>
+            <a href="/interface" class="inline-flex items-center gap-1.5 text-primary font-bold text-sm mt-3 hover:underline underline-offset-4">
+                <span class="material-symbols-outlined text-base">add_circle</span> Crear primera clase
+            </a>
+        </div>`;
         return;
     }
 
-    const ul = document.createElement("ul");
-    ul.className = "lista-clases";
+    const grid = document.createElement("div");
+    grid.className = "grid gap-3";
+
     materias.forEach(m => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-            <div class="clase-info">
-                <strong>${m.nombre}</strong>
-                <span>Sección ${m.seccion} · ${m.horario}</span>
+        const card = document.createElement("div");
+        card.className = "bg-surface-container rounded-2xl p-5 flex items-center justify-between border border-outline-variant/10 hover:border-primary/20 transition-all group";
+        card.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/25 transition-colors">
+                    <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;">menu_book</span>
+                </div>
+                <div>
+                    <p class="font-bold text-on-background">${m.nombre}</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Sección ${m.seccion} · ${m.horario}</p>
+                </div>
             </div>
             <button onclick="irAClase(${m.id_materia}, '${m.nombre}', '${m.seccion}')"
-                    style="width:auto; padding:0.6rem 1.25rem;">Entrar →</button>`;
-        ul.appendChild(li);
+                class="flex items-center gap-1.5 bg-surface-container-high text-on-surface font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-primary hover:text-on-primary transition-all active:scale-95 border border-outline-variant/20 flex-shrink-0">
+                Entrar <span class="material-symbols-outlined text-base">arrow_forward</span>
+            </button>`;
+        grid.appendChild(card);
     });
+
     cont.innerHTML = "";
-    cont.appendChild(ul);
+    cont.appendChild(grid);
 }
 
 function irAClase(idMateria, nombre, seccion) {
@@ -314,7 +297,7 @@ function irAClase(idMateria, nombre, seccion) {
 
     const base = window.location.origin;
     document.getElementById("link-inscripcion").innerHTML =
-        `🔗 Link de inscripción: <a href="${base}/inscribirse/${seccion}" target="_blank">${base}/inscribirse/${seccion}</a>`;
+        `🔗 Link inscripción alumnos: <a href="${base}/inscribirse/${seccion}" target="_blank" class="text-primary hover:underline underline-offset-2">${base}/inscribirse/${seccion}</a>`;
 
     cargarEstudiantes();
     verificarClaseEnCurso();
@@ -328,139 +311,120 @@ function volverALista() {
     idMateriaActual = null;
 }
 
-// ─── VERIFICAR CLASE EN CURSO ─────────────────────────────
+// ── CLASE EN CURSO ───────────────────────────────────────────
 async function verificarClaseEnCurso() {
-    const resp = await fetch(`/materia/${idMateriaActual}/clase_en_curso`, {
-        headers: { "Authorization": "Bearer " + tkn() }
-    });
+    const resp  = await fetch(`/materia/${idMateriaActual}/clase_en_curso`, { headers:{"Authorization":"Bearer "+tkn()} });
     const datos = await resp.json();
-    const secVivo = document.getElementById("seccion-vivo");
-
+    const sec   = document.getElementById("seccion-vivo");
     if (datos.en_curso) {
-        secVivo.style.display = "block";
+        sec.style.display = "block";
         cargarAsistenciaVivo();
-        if (!intervaloVivo) {
-            intervaloVivo = setInterval(cargarAsistenciaVivo, 10000); // refresca cada 10s
-        }
+        if (!intervaloVivo) intervaloVivo = setInterval(cargarAsistenciaVivo, 10000);
     } else {
-        secVivo.style.display = "none";
+        sec.style.display = "none";
         if (intervaloVivo) { clearInterval(intervaloVivo); intervaloVivo = null; }
     }
 }
 
 async function cargarAsistenciaVivo() {
-    const resp = await fetch(`/materia/${idMateriaActual}/asistencia_hoy`, {
-        headers: { "Authorization": "Bearer " + tkn() }
-    });
+    const resp  = await fetch(`/materia/${idMateriaActual}/asistencia_hoy`, { headers:{"Authorization":"Bearer "+tkn()} });
     if (!resp.ok) return;
     const datos = await resp.json();
     const cont  = document.getElementById("contenedor-vivo");
-
-    const total    = datos.presentes.length + datos.ausentes.length;
     const presentes = datos.presentes;
     const ausentes  = datos.ausentes;
 
-    let html = `<p style="font-size:0.82rem; color:#d3c5ac; margin:0 0 0.75rem;">
-        <strong style="color:#6dffb0;">${presentes.length}</strong> presentes ·
-        <strong style="color:#ff7070;">${ausentes.length}</strong> sin marcar ·
-        ${total} total
-    </p>
-    <table class="tabla-vivo">
-        <thead><tr><th>Nombre</th><th>Modalidad</th><th>Estado</th></tr></thead>
-        <tbody>`;
+    let html = `<div class="flex gap-4 text-xs mb-3">
+        <span class="text-primary font-bold">${presentes.length} presentes</span>
+        <span class="text-on-surface-variant">·</span>
+        <span class="text-error font-bold">${ausentes.length} sin marcar</span>
+        <span class="text-on-surface-variant">·</span>
+        <span class="text-on-surface-variant">${presentes.length + ausentes.length} total</span>
+    </div>
+    <div class="overflow-x-auto rounded-xl border border-outline-variant/10">
+    <table class="w-full"><thead class="t-vivo"><tr><th>Nombre</th><th>Modalidad</th><th>Estado</th></tr></thead><tbody>`;
 
     presentes.forEach(e => {
-        let estadoHtml;
-        if (e.modalidad === "virtual") {
-            estadoHtml = `<span class="badge-presente">✓ Presente</span>`;
-        } else if (e.dentro_del_rango === true) {
-            estadoHtml = `<span class="badge-presente">✓ Presente (en el aula)</span>`;
-        } else if (e.dentro_del_rango === false) {
-            estadoHtml = `<span style="color:#ffb020; font-weight:700;">⚠ Presente (fuera del aula)</span>`;
-        } else {
-            estadoHtml = `<span style="color:#ffb020; font-weight:700;">⚠ Presente (sin verificar ubicación)</span>`;
-        }
-        html += `<tr>
-            <td>${e.nombre}</td>
-            <td style="text-transform:capitalize;">${e.modalidad}</td>
-            <td>${estadoHtml}</td>
-        </tr>`;
+        html += `<tr><td class="text-on-surface">${e.nombre}</td>
+            <td class="capitalize text-on-surface-variant">${e.modalidad}</td>
+            <td><span class="text-primary font-bold text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm" style="font-variation-settings:'FILL' 1;">check_circle</span> Presente</span></td></tr>`;
     });
     ausentes.forEach(e => {
-        html += `<tr>
-            <td>${e.nombre}</td>
-            <td style="text-transform:capitalize;">${e.modalidad}</td>
-            <td class="badge-ausente">– Sin marcar</td>
-        </tr>`;
+        html += `<tr><td class="text-on-surface">${e.nombre}</td>
+            <td class="capitalize text-on-surface-variant">${e.modalidad}</td>
+            <td><span class="text-error text-xs flex items-center gap-1"><span class="material-symbols-outlined text-sm">radio_button_unchecked</span> Sin marcar</span></td></tr>`;
     });
 
-    html += "</tbody></table>";
+    html += "</tbody></table></div>";
     cont.innerHTML = html;
 }
 
-// ─── TABLA ESTUDIANTES ESTÁTICA ───────────────────────────
+// ── TABLA ESTUDIANTES ESTÁTICA ───────────────────────────────
 async function cargarEstudiantes() {
     const cont = document.getElementById("contenedor-tabla");
-    cont.innerHTML = "<p>Cargando...</p>";
+    cont.innerHTML = `<p class="text-sm text-on-surface-variant">Cargando...</p>`;
 
-    const resp = await fetch(`/materia/${idMateriaActual}/estudiantes`, {
-        headers: { "Authorization": "Bearer " + tkn() }
-    });
+    const resp = await fetch(`/materia/${idMateriaActual}/estudiantes`, { headers:{"Authorization":"Bearer "+tkn()} });
     const estudiantes = await resp.json();
 
-    if (!resp.ok) { cont.innerHTML = `<p style="color:#ff7070;">Error: ${estudiantes.detail}</p>`; return; }
-    if (estudiantes.length === 0) { cont.innerHTML = "<p>Sin estudiantes inscritos aún.</p>"; return; }
+    if (!resp.ok) { cont.innerHTML = `<p class="text-sm text-error">${estudiantes.detail}</p>`; return; }
+    if (estudiantes.length === 0) {
+        cont.innerHTML = `<div class="text-center py-8 text-on-surface-variant text-sm">
+            <span class="material-symbols-outlined text-4xl block mb-2 text-outline">group</span>
+            Sin estudiantes inscritos aún.
+        </div>`;
+        return;
+    }
 
     const semanas = ultimasCuatroSemanas();
-
-    let html = `<table class="tabla-estudiantes"><thead><tr>
+    let html = `<table class="w-full"><thead class="t-head"><tr>
         <th>Nombre</th><th>Correo</th><th>Cuenta</th><th>Modalidad</th><th>Faltas</th>`;
-    semanas.forEach(s => { html += `<th class="semana-header">${s.etiqueta}</th>`; });
-    html += `<th>Acciones</th></tr></thead><tbody>`;
+    semanas.forEach(s => { html += `<th class="text-center text-xs">${s.etiqueta}</th>`; });
+    html += `<th>Acciones</th></tr></thead><tbody class="t-body">`;
 
     estudiantes.forEach(e => {
         html += `<tr>
-            <td>${e.nombre}</td>
-            <td>${e.correo}</td>
-            <td>${e.numero_cuenta}</td>
-            <td style="text-transform:capitalize;">${e.modalidad}</td>
-            <td style="text-align:center;">${e.faltas}</td>`;
-        semanas.forEach((s, i) => {
-            html += `<td class="celda-asistencia sin-datos">–</td>`;
-        });
+            <td class="font-medium">${e.nombre}</td>
+            <td class="text-on-surface-variant">${e.correo}</td>
+            <td class="text-on-surface-variant">${e.numero_cuenta}</td>
+            <td class="capitalize">${e.modalidad}</td>
+            <td class="text-center font-bold ${e.faltas > 0 ? 'text-error' : 'text-primary'}">${e.faltas}</td>`;
+        semanas.forEach(() => { html += `<td class="text-center text-on-surface-variant/30 text-sm">–</td>`; });
         html += `<td>
-            <button class="btn-accion btn-editar" onclick='abrirModalEditar(${JSON.stringify(e)})'>Editar</button>
-            <button class="btn-accion btn-eliminar" onclick="confirmarEliminar(${e.id_estudiante})">Eliminar</button>
+            <div class="flex gap-1.5">
+                <button onclick='abrirModalEditar(${JSON.stringify(e)})'
+                    class="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95">
+                    <span class="material-symbols-outlined text-sm">edit</span>
+                </button>
+                <button onclick="confirmarEliminar(${e.id_estudiante})"
+                    class="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-error/10 text-error border border-error/20 hover:bg-error/20 transition-all active:scale-95">
+                    <span class="material-symbols-outlined text-sm">delete</span>
+                </button>
+            </div>
         </td></tr>`;
     });
 
     html += "</tbody></table>";
-    cont.innerHTML = html;
+    cont.innerHTML = `<div class="overflow-x-auto rounded-xl border border-outline-variant/10">${html}</div>`;
 }
 
 function ultimasCuatroSemanas() {
     const hoy = new Date();
-    return Array.from({length: 4}, (_, i) => {
+    return Array.from({length:4}, (_, i) => {
         const d = new Date(hoy);
         d.setDate(hoy.getDate() - i * 7);
-        const label = i === 0
-            ? "Hoy " + d.toLocaleDateString("es-HN", {day:"2-digit", month:"2-digit"})
-            : d.toLocaleDateString("es-HN", {day:"2-digit", month:"2-digit"});
-        return { fecha: d.toISOString().split("T")[0], etiqueta: label };
+        return { etiqueta: i === 0 ? "Hoy " + d.toLocaleDateString("es-HN",{day:"2-digit",month:"2-digit"}) : d.toLocaleDateString("es-HN",{day:"2-digit",month:"2-digit"}) };
     });
 }
 
-// ─── CRUD ESTUDIANTES ─────────────────────────────────────
+// ── CRUD ESTUDIANTES ─────────────────────────────────────────
 function abrirModalAgregar() {
     document.getElementById("modal-form-titulo").innerText = "Agregar Estudiante";
-    ["form-id-estudiante","form-nombre","form-correo","form-telefono","form-cuenta"].forEach(id => {
-        document.getElementById(id).value = "";
-    });
+    ["form-id-estudiante","form-nombre","form-correo","form-telefono","form-cuenta"].forEach(id => document.getElementById(id).value = "");
     document.getElementById("form-modalidad").value = "presencial";
     document.getElementById("modal-form-mensaje").innerText = "";
     document.getElementById("modal-form").classList.add("activo");
 }
-
 function abrirModalEditar(est) {
     document.getElementById("modal-form-titulo").innerText = "Editar Estudiante";
     document.getElementById("form-id-estudiante").value = est.id_estudiante;
@@ -472,100 +436,63 @@ function abrirModalEditar(est) {
     document.getElementById("modal-form-mensaje").innerText = "";
     document.getElementById("modal-form").classList.add("activo");
 }
-
 function cerrarModalForm() { document.getElementById("modal-form").classList.remove("activo"); }
 
 async function guardarEstudiante() {
     const idEst = document.getElementById("form-id-estudiante").value;
-    const body = {
+    const body  = {
         nombre:        document.getElementById("form-nombre").value.trim(),
         correo:        document.getElementById("form-correo").value.trim(),
         telefono:      document.getElementById("form-telefono").value.trim(),
         numero_cuenta: document.getElementById("form-cuenta").value.trim(),
         modalidad:     document.getElementById("form-modalidad").value
     };
-    const msgEl = document.getElementById("modal-form-mensaje");
+    const msgEl  = document.getElementById("modal-form-mensaje");
     const url    = idEst ? `/estudiante/${idEst}` : `/materia/${idMateriaActual}/agregar_estudiante`;
     const method = idEst ? "PUT" : "POST";
-
-    const resp  = await fetch(url, { method, headers: hdrs(), body: JSON.stringify(body) });
-    const datos = await resp.json();
-
+    const resp   = await fetch(url, { method, headers:hdrs(), body:JSON.stringify(body) });
+    const datos  = await resp.json();
     if (resp.ok) { cerrarModalForm(); cargarEstudiantes(); }
-    else { msgEl.innerText = "Error: " + datos.detail; msgEl.style.color = "#ff7070"; }
+    else { msgEl.innerText = datos.detail; msgEl.style.color = "#f87171"; }
 }
 
 async function confirmarEliminar(idEst) {
     if (!confirm("¿Eliminar este estudiante de la clase?")) return;
-    const resp = await fetch(`/estudiante/${idEst}`, {
-        method: "DELETE", headers: { "Authorization": "Bearer " + tkn() }
-    });
+    const resp = await fetch(`/estudiante/${idEst}`, { method:"DELETE", headers:{"Authorization":"Bearer "+tkn()} });
     if (resp.ok) cargarEstudiantes();
-    else { const d = await resp.json(); alert("Error: " + d.detail); }
+    else { const d = await resp.json(); alert(d.detail); }
 }
 
+// ── CONFIGURAR UBICACIÓN AULA ────────────────────────────────
 function configurarUbicacionAula() {
-    const estado = document.getElementById("estado-ubicacion-aula");
-
-    if (!navigator.geolocation) {
-        estado.innerText = "Tu navegador no soporta geolocalización.";
-        estado.style.color = "#ff7070";
-        return;
-    }
-
-    estado.innerText = "Obteniendo tu ubicación actual...";
-    estado.style.color = "#d3c5ac";
-
-    navigator.geolocation.getCurrentPosition(async function (posicion) {
-        const lat = posicion.coords.latitude;
-        const lng = posicion.coords.longitude;
-
-        const resp = await fetch(`/materia/${idMateriaActual}/configurar_ubicacion`, {
-            method: "POST",
-            headers: hdrs(),
-            body: JSON.stringify({ lat, lng })
+    const el = document.getElementById("estado-ubicacion-aula");
+    if (!navigator.geolocation) { el.innerText = "Tu navegador no soporta geolocalización."; el.style.color="#f87171"; return; }
+    el.innerText = "Obteniendo tu ubicación..."; el.style.color = "#bfc9c1";
+    navigator.geolocation.getCurrentPosition(async function(pos) {
+        const resp  = await fetch(`/materia/${idMateriaActual}/configurar_ubicacion`, {
+            method:"POST", headers:hdrs(), body:JSON.stringify({lat:pos.coords.latitude, lng:pos.coords.longitude})
         });
         const datos = await resp.json();
-
-        if (resp.ok) {
-            estado.innerText = "✓ Ubicación del aula guardada. Ya se puede validar la asistencia presencial.";
-            estado.style.color = "#6dffb0";
-        } else {
-            estado.innerText = "Error: " + datos.detail;
-            estado.style.color = "#ff7070";
-        }
-    }, function () {
-        estado.innerText = "No se pudo obtener tu ubicación. Asegúrate de estar en el salón y dar permiso al navegador.";
-        estado.style.color = "#ff7070";
-    });
+        if (resp.ok) { el.innerText = "✓ Ubicación del aula guardada."; el.style.color="#92d5b2"; }
+        else { el.innerText = datos.detail; el.style.color="#f87171"; }
+    }, function() { el.innerText = "No se pudo obtener ubicación."; el.style.color="#f87171"; });
 }
 
-// ─── QR ───────────────────────────────────────────────────
+// ── QR ───────────────────────────────────────────────────────
 async function pedirTokenYPintarQR() {
-    const resp = await fetch(`/materia/${idMateriaActual}/generar_qr_token`, {
-        headers: { "Authorization": "Bearer " + tkn() }
-    });
-    if (!resp.ok) {
-        document.getElementById("contenedor-qr").innerHTML = "<p style='color:#ff7070;'>Error generando el código.</p>";
-        return;
-    }
-    const datos  = await resp.json();
-    const urlQR  = `${datos.base_url}/marcar?id_materia=${idMateriaActual}&token=${datos.token}`;
+    const resp = await fetch(`/materia/${idMateriaActual}/generar_qr_token`, { headers:{"Authorization":"Bearer "+tkn()} });
+    if (!resp.ok) { document.getElementById("contenedor-qr").innerHTML = `<p class="text-error text-xs p-4">Error generando el código.</p>`; return; }
+    const datos = await resp.json();
+    const urlQR = `${datos.base_url}/marcar?id_materia=${idMateriaActual}&token=${datos.token}`;
 
     const cont = document.getElementById("contenedor-qr");
     cont.innerHTML = "";
-    new QRCode(cont, { text: urlQR, width: 220, height: 220 });
+    new QRCode(cont, { text:urlQR, width:220, height:220 });
 
     let seg = 15;
     const countEl = document.getElementById("contador-qr");
     countEl.innerText = `Se renueva en ${seg}s`;
-    const cuenta = setInterval(() => {
-        seg--;
-        countEl.innerText = `Se renueva en ${seg}s`;
-        if (seg <= 0) clearInterval(cuenta);
-    }, 1000);
-
-    // Activar tabla en vivo si aún no estaba
+    const cuenta = setInterval(() => { seg--; countEl.innerText=`Se renueva en ${seg}s`; if(seg<=0) clearInterval(cuenta); }, 1000);
     verificarClaseEnCurso();
 }
 
@@ -574,36 +501,24 @@ function abrirModalQR() {
     pedirTokenYPintarQR();
     intervaloQR = setInterval(pedirTokenYPintarQR, 15000);
 }
-
 function cerrarModalQR() {
     document.getElementById("modal-qr").classList.remove("activo");
     if (intervaloQR) { clearInterval(intervaloQR); intervaloQR = null; }
 }
+function abrirVistGrande() { window.open(`/qr_pantalla/${idMateriaActual}`, "_blank"); }
 
-function abrirVistGrande() {
-    window.open(`/qr_pantalla/${idMateriaActual}`, "_blank");
-}
+document.getElementById("modal-qr").addEventListener("click",  e => { if(e.target===e.currentTarget) cerrarModalQR(); });
+document.getElementById("modal-form").addEventListener("click", e => { if(e.target===e.currentTarget) cerrarModalForm(); });
 
-document.getElementById("modal-qr").addEventListener("click", function(e) {
-    if (e.target === this) cerrarModalQR();
-});
-document.getElementById("modal-form").addEventListener("click", function(e) {
-    if (e.target === this) cerrarModalForm();
-});
-
-
+// ── GRABACIÓN ────────────────────────────────────────────────
 async function publicarGrabacion() {
     const url = document.getElementById("url-grabacion").value.trim();
     if (!url) { alert("Pega el URL de la grabación primero."); return; }
-
-    const resp  = await fetch(
-        `/materia/${idMateriaActual}/publicar_grabacion?url_video=${encodeURIComponent(url)}`,
-        { method: "POST", headers: { "Authorization": "Bearer " + tkn() } }
-    );
+    const resp  = await fetch(`/materia/${idMateriaActual}/publicar_grabacion?url_video=${encodeURIComponent(url)}`, { method:"POST", headers:{"Authorization":"Bearer "+tkn()} });
     const datos = await resp.json();
     const el    = document.getElementById("estado-grabacion");
-    el.innerText   = resp.ok ? "✓ " + datos.mensaje : "Error: " + datos.detail;
-    el.style.color = resp.ok ? "#6dffb0" : "#ff7070";
+    el.innerText   = resp.ok ? "✓ " + datos.mensaje : datos.detail;
+    el.style.color = resp.ok ? "#92d5b2" : "#f87171";
     if (resp.ok) document.getElementById("url-grabacion").value = "";
 }
 

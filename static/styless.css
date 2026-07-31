@@ -1,669 +1,335 @@
+/* =========================================
+   FUENTES Y VARIABLES GLOBALES
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;700&display=swap');
 
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;700;900&family=Inter:wght@400;500;600&display=swap');
-
-
-.titulo_inter{
-
-text-align: center;
-color:  black;
-padding: 10px;
-
+:root {
+    --bg-dark: #030914;
+    --primary-orange: #f7931a;
+    --orange-hover: #ffc97a;
+    --text-white: #ffffff;
+    --text-muted: #94a3b8;
+    --glass-bg: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --success: #10b981;
+    --danger: #ffb4ab;
 }
+
+
 body {
+   
+    background-color: #090e17;
+    
+    background-image: 
+        radial-gradient(circle at 50% 0%, rgba(247, 147, 26, 0.12) 0%, transparent 60%),
+        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 32px 32px, 32px 32px;
+    background-position: top center, center center, center center;
+    background-attachment: fixed;
+    
+    color: var(--text-white);
+    font-family: 'Space Grotesk', sans-serif;
     margin: 0;
-    padding: 0;
+    padding: 2rem;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    font-family: 'Inter', sans-serif;
-    color: #ece1d1;
-    background-color: #17130a;
-    background-image: linear-gradient(to top, #17130a, rgba(23, 19, 10, 0.5)), url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
-    background-size: cover;
-    background-position: center;
-    background-blend-mode: luminosity;
 }
-
-/* Título principal */
-h1 {
-    font-family: 'Geist', sans-serif;
-    font-size: 3.5rem;
-    font-weight: 900;
-    margin-bottom: 2rem;
-    color: #ffffff;
-    text-align: center;
-    letter-spacing: -1px;
-}
-
-/* Tarjeta Glassmorphism (Tu formulario) */
-#formulario-login {
-    background: rgba(23, 23, 23, 0.5);
-    backdrop-filter: blur(32px);
-    -webkit-backdrop-filter: blur(32px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 2.5rem;
-    border-radius: 1rem;
+/* Contenedor principal de mis_clases.html */
+div[style*="max-width:960px"] {
     width: 100%;
-    max-width: 350px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    max-width: 960px;
+    margin: 0 auto;
 }
 
-#formulario-login div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+/* =========================================
+   TIPOGRAFÍA Y ENLACES
+   ========================================= */
+h1, h2, h3 {
+    text-align: center;
+    background: linear-gradient(to bottom right, var(--primary-orange), var(--orange-hover), #ffffff);
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
 }
 
-/* Etiquetas de los inputs */
+p {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+a {
+    color: var(--primary-orange);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+a:hover {
+    color: var(--orange-hover);
+}
+
+/* =========================================
+   FORMULARIOS Y CONTROLES
+   ========================================= */
+form {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+    backdrop-filter: blur(16px);
+    width: 100%;
+    max-width: 400px;
+    margin: 1rem auto;
+    display: flex;
+    flex-direction: column;
+}
+
 label {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: rgba(211, 197, 172, 0.8);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    margin-bottom: 0.4rem;
+    display: block;
+    text-align: left;
 }
 
-/* Inputs de texto y contraseña */
-input {
+input, select {
     width: 100%;
     box-sizing: border-box;
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: 'JetBrains Mono', monospace;
+    background-color: rgba(3, 9, 20, 0.6);
+    border: 1px solid var(--glass-border);
     border-radius: 0.5rem;
-    padding: 0.9rem 1rem;
-    color: #ffffff;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+    color: var(--text-white);
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+}
+
+input:focus, select:focus {
     outline: none;
-    transition: all 0.3s ease;
+    border-color: var(--primary-orange);
+    box-shadow: 0 0 0 1px var(--primary-orange);
 }
 
-input:focus {
-    border-color: rgba(255, 209, 101, 0.5);
-    box-shadow: 0 0 0 2px rgba(255, 209, 101, 0.1);
+select option {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
 }
 
-/* Botón de envío */
 button {
     width: 100%;
-    background: linear-gradient(to bottom, #2a2315, #000000);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #ffd165;
-    font-family: 'Geist', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
     padding: 1rem;
+    background-color: var(--primary-orange);
+    color: var(--bg-dark);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    border: none;
     border-radius: 0.5rem;
     cursor: pointer;
-    transition: transform 0.2s ease;
-    margin-top: 0.5rem;
+    box-shadow: 0 0 20px rgba(247, 147, 26, 0.3);
+    transition: all 0.2s;
+    margin-top: 1rem;
 }
 
 button:hover {
-    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(247, 147, 26, 0.5);
 }
-
 button:active {
     transform: scale(0.95);
 }
 
-/* Párrafos y enlaces externos al formulario */
-p {
-    margin-top: 1.5rem;
-    margin-bottom: 0;
-    font-size: 0.9rem;
-    color: rgba(211, 197, 172, 0.8);
-}
-
-a {
-    color: #ffffff;
-    font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-    text-decoration-color: rgba(255, 209, 101, 0.3);
-    transition: color 0.3s ease;
-}
-
-a:hover {
-    color: #ffd165;
-}
-
-/* Mensaje de error/bienvenida */
-#bienvenida {
-    min-height: 20px;
-    font-weight: 600;
-    margin-top: 1rem;
-}
-
-/* Ocultar visualmente los <br> del HTML para manejar el espaciado con CSS moderno */
-br {
-    display: none;
-}
-
-
-/* --- ESTILOS ADICIONALES PARA EL REGISTRO --- */
-
-.main-container {
-    display: flex;
-    min-height: 100vh;
+/* =========================================
+   VISTA: MIS CLASES Y DETALLES [18]
+   ========================================= */
+.nav-bar {
     width: 100%;
-    overflow: hidden;
-}
-
-/* Panel Izquierdo con imagen inmersiva */
-.left-panel {
-    display: none;
-}
-
-@media (min-width: 1024px) {
-    .left-panel {
-        display: flex;
-        width: 50%;
-        position: relative;
-        background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
-        background-size: cover;
-        background-position: center;
-        align-items: center;
-    }
-}
-
-.overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to right, #17130a, rgba(23, 19, 10, 0.6)), rgba(0, 0, 0, 0.4);
-}
-
-.left-content {
-    position: relative;
-    z-index: 10;
-    padding: 4rem;
-    max-width: 500px;
-}
-
-.badge-line {
     display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.badge-line .line {
-    width: 48px;
-    height: 4px;
-    background-color: #ffd165;
-}
-
-.badge-line span {
-    font-family: 'Geist', sans-serif;
-    font-size: 0.75rem;
-    color: #ffd165;
-    text-transform: uppercase;
-    letter-spacing: 0.3em;
-    font-weight: 700;
-}
-
-.left-content h1 {
-    font-family: 'Geist', sans-serif;
-    font-size: 3rem;
-    font-weight: 900;
-    line-height: 1.1;
-    color: #ece1d1;
-    margin-bottom: 1rem;
-}
-
-.left-content .highlight {
-    color: #ffd165;
-    font-style: italic;
-    font-weight: 300;
-}
-
-.left-content p {
-    color: #d3c5ac;
-    opacity: 0.8;
-    line-height: 1.6;
+    justify-content: flex-start;
+    gap: 1rem;
     margin-bottom: 2rem;
 }
 
-.code-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    border-left: 2px solid rgba(255, 209, 101, 0.3);
-    padding-left: 1rem;
-    font-family: monospace;
-    font-size: 0.75rem;
-    color: rgba(236, 225, 209, 0.6);
-    text-transform: uppercase;
+.lista-clases { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0 auto; 
+    width: 100%; 
+    max-width: 600px; 
 }
-
-/* Panel Derecho (Formulario) */
-.right-panel {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background-color: #120e05;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-@media (min-width: 1024px) {
-    .right-panel {
-        width: 50%;
-        background-color: transparent;
-    }
-}
-
-.form-wrapper {
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-}
-
-.form-wrapper h2 {
-    font-family: 'Geist', sans-serif;
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: #ece1d1;
-    margin-bottom: 0.25rem;
-}
-
-.subtitle {
-    font-size: 0.875rem;
-    color: #d3c5ac;
-    margin-bottom: 2rem;
-}
-
-#formulario-nuevo {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.input-group label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #d3c5ac;
-}
-
-.input-group input {
-    background: #2f291f;
-    border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
-    padding: 1rem;
-    color: #ece1d1;
-    font-size: 0.9rem;
-    outline: none;
-    transition: border-color 0.3s ease;
-}
-
-.input-group input:focus {
-    border-bottom-color: #ffd165;
-}
-
-/* Botón de Registro */
-button[type="submit"] {
-    margin-top: 1rem;
-    width: 100%;
-    padding: 1rem;
-    border-radius: 9999px;
-    background-color: #ffd165;
-    color: #3f2e00;
-    font-family: 'Geist', sans-serif;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 0.75rem;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 10px 25px -5px rgba(255, 209, 101, 0.2);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-button[type="submit"]:hover {
-    transform: scale(1.02);
-    box-shadow: 0 15px 30px -5px rgba(255, 209, 101, 0.4);
-}
-
-/* Enlaces del pie */
-.links-footer {
-    margin-top: 2rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    font-size: 0.875rem;
-}
-
-.links-footer a {
-    color: #d3c5ac;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.links-footer a:hover {
-    color: #ffd165;
-}
-
-#bienvenida {
-    font-weight: 600;
-    margin-top: 1rem;
-    font-size: 0.875rem;
-    text-align: center;
-}
-
-
-
-/* --- ESTILOS GENERALES Y HOME --- */
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #17130a;
-    color: #ece1d1;
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-}
-
-/* Contenedor principal con la imagen de fondo */
-.hero-wrapper {
-    position: relative;
-    width: 100%;
-    min-height: 95vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.hero-bg-image {
-    position: absolute;
-    inset: 0;
-    background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop');
-    background-size: cover;
-    background-position: center;
-    z-index: 1;
-}
-
-.hero-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to bottom, rgba(23, 19, 10, 0.85), rgba(23, 19, 10, 0.80)), rgba(0, 0, 0, 0.4);
-    z-index: 2;
-}
-
-/* Navbar superior */
-.navbar-container {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    align-items: center;
+.lista-clases li {
+    display: flex; 
+    align-items: center; 
     justify-content: space-between;
-    padding: 1.5rem 3rem;
+    padding: 1.5rem;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1rem; 
+    margin-bottom: 1rem;
+    backdrop-filter: blur(10px);
 }
 
-.brand-container {
-    display: flex;
-    align-items: center;
+.clase-info strong { 
+    color: var(--text-white); 
+    font-size: 1.2rem; 
+}
+.clase-info span { 
+    font-family: 'JetBrains Mono', monospace; 
+    font-size: 0.85rem; 
+    color: var(--text-muted); 
+    display: block; 
+    margin-top: 0.25rem; 
 }
 
-.brand {
-    font-family: 'Geist', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: #ece1d1;
-    margin: 0;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-}
-
-.brand strong {
-    color: #ffd165;
-}
-
-.nav-links {
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-    margin: 0;
-    padding: 0;
-}
-
-.nav-item {
-    color: #ece1d1;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: color 0.3s ease;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-}
-
-.nav-item:hover {
-    color: #ffd165;
-}
-
-.nav-item--cta {
-    background-color: #ffd165;
-    color: #3f2e00;
-    padding: 0.75rem 1.5rem;
-    border-radius: 9999px;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    box-shadow: 0 10px 20px -5px rgba(255, 209, 101, 0.3);
-    transition: transform 0.2s ease;
-}
-
-.nav-item--cta:hover {
-    transform: scale(1.05);
-}
-
-/* Hero Section */
-.hero-section {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 2rem 1.5rem 5rem 1.5rem;
-    max-width: 900px;
-    margin: 0 auto;
-}
-
-
-/* CONTENEDOR TIPO VIDRIO ESMERILADO (GLASSMORPHISM) */
-.hero-logo-container {
-    background: rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 20px !important;
-    padding: 14px 24px !important;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5) !important;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.uph-logo-hero {
-    width: 90px;
-    height: auto;
-    object-fit: contain;
-    /* Quitamos los filtros anteriores para que conserve sus colores originales limpios */
-    mix-blend-mode: normal;
-    filter: none;
-}
-
-.hero-title {
-    font-family: 'Geist', sans-serif;
-    font-size: 3.5rem;
-    font-weight: 900;
-    line-height: 1.15;
-    color: #ece1d1;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 4px 12px rgba(0,0,0,0.6);
-}
-
-.hero-highlight {
-    color: #ffd165;
-    font-style: italic;
-    font-weight: 300;
-}
-
-.hero-subtitle {
-    color: #e2d6c3;
-    font-size: 1.15rem;
-    line-height: 1.6;
-    max-width: 700px;
-    margin-bottom: 2.5rem;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
-}
-
-.btn-primary {
-    background-color: #ffd165;
-    color: #3f2e00;
-    font-family: 'Geist', sans-serif;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 0.8rem;
-    padding: 1.1rem 2.5rem;
-    border-radius: 9999px;
-    text-decoration: none;
-    box-shadow: 0 15px 30px -5px rgba(255, 209, 101, 0.4);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    display: inline-block;
-}
-
-.btn-primary:hover {
-    transform: scale(1.05);
-    box-shadow: 0 20px 40px -5px rgba(255, 209, 101, 0.6);
-}
-
-/* Benefits Section */
-.benefits-section {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 5rem 2rem;
-}
-
-.section-header {
-    text-align: center;
-    margin-bottom: 3.5rem;
-}
-
-.section-header h2 {
-    font-family: 'Geist', sans-serif;
-    font-size: 2.25rem;
-    font-weight: 700;
-    color: #ece1d1;
-    margin-bottom: 0.5rem;
-}
-
-.section-header p {
-    color: #d3c5ac;
-    font-size: 0.95rem;
-}
-
-.benefits-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 2rem;
-}
-
-@media (min-width: 768px) {
-    .benefits-grid {
-        grid-template-columns: repeat(3, 1fr);
-    }
-    .hero-title {
-        font-size: 4.5rem;
-    }
-}
-
-.benefit-card {
-    background-color: #241f15;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+.seccion-clase {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     border-radius: 1rem;
-    padding: 2.5rem 2rem;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    transition: border-color 0.3s ease, transform 0.3s ease;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    backdrop-filter: blur(16px);
+    text-align: left;
 }
-
-.benefit-card:hover {
-    border-color: rgba(255, 209, 101, 0.5);
-    transform: translateY(-5px);
+.seccion-clase h3 { 
+    text-align: left; 
+    background: none; 
+    color: var(--primary-orange); 
+    -webkit-text-fill-color: var(--primary-orange); 
+    margin-top: 0; 
 }
+.seccion-clase p { text-align: left; }
+.seccion-clase form { margin: 0; padding: 0; box-shadow: none; border: none; background: transparent; backdrop-filter: none; }
 
-.benefit-icon {
-    width: 54px;
-    height: 54px;
-    background-color: rgba(255, 209, 101, 0.1);
-    border-radius: 0.75rem;
+.grabacion-row {
     display: flex;
+    gap: 1rem;
     align-items: center;
-    justify-content: center;
-    color: #ffd165;
-    margin-bottom: 1.5rem;
+    margin-top: 1rem;
 }
+.grabacion-row input { margin-bottom: 0; }
+.grabacion-row button { width: auto; margin-top: 0; white-space: nowrap; }
 
-.benefit-icon .material-symbols-outlined {
-    font-size: 28px;
-}
-
-.benefit-tag {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #ffd165;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    margin-bottom: 0.5rem;
-}
-
-.benefit-card h3 {
-    font-family: 'Geist', sans-serif;
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #ece1d1;
-    margin-bottom: 0.75rem;
+.btn-accion, .seccion-clase button {
+    width: auto;
+    padding: 0.6rem 1.25rem;
     margin-top: 0;
 }
 
-.benefit-card p {
-    color: #d3c5ac;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    opacity: 0.85;
-    margin: 0;
+/* Tablas */
+.tabla-estudiantes, .tabla-vivo {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+}
+th {
+    background: rgba(247, 147, 26, 0.1);
+    color: var(--primary-orange);
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--glass-border);
+}
+.tabla-vivo th {
+    background: rgba(109, 255, 176, 0.1);
+    color: var(--success);
+}
+td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    color: var(--text-white);
+}
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* Badges */
+.badge-presente, .presente { color: var(--success); font-weight: 700; }
+.badge-ausente, .ausente  { color: var(--danger); }
+.badge-en-curso {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: var(--success);
+    font-size: 0.7rem;
+    padding: 2px 10px;
+    border-radius: 12px;
+    margin-left: 10px;
 }
 
-/* Footer */
-.site-footer {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+/* Modales */
+#modal-qr, #modal-form {
+    display: none; position: fixed; inset: 0;
+    background: rgba(3, 9, 20, 0.85);
+    z-index: 100; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+}
+#modal-qr.activo, #modal-form.activo { display: flex; }
+
+.qr-card, .form-card {
+    background: #0a1120;
+    border: 1px solid var(--primary-orange);
+    border-radius: 1.25rem;
+    padding: 2rem;
     text-align: center;
-    padding: 2.5rem;
-    margin-top: 2rem;
+    box-shadow: 0 0 30px rgba(247, 147, 26, 0.15);
 }
+.form-card { max-width: 420px; width: 100%; text-align: left; }
 
-.footer-text {
-    font-size: 0.8rem;
-    color: #d3c5ac;
-    opacity: 0.7;
-    margin: 0;
+.qr-botones { display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; }
+.qr-botones button { width: auto; margin: 0; }
+.btn-vista-grande { background: transparent; border: 1px solid var(--primary-orange); color: var(--primary-orange); }
+
+.btn-cancelar { background: transparent; border: 1px solid var(--glass-border); color: var(--text-muted); box-shadow: none; }
+.btn-cancelar:hover { background: rgba(255,255,255,0.05); }
+
+.btn-editar { background: rgba(247, 147, 26, 0.15); color: var(--primary-orange); border: 1px solid rgba(247, 147, 26, 0.3); }
+.btn-eliminar { background: rgba(255, 112, 112, 0.15); color: var(--danger); border: 1px solid rgba(255, 112, 112, 0.3); }
+
+/* =========================================
+   VISTA: QR PÚBLICO [16]
+   ========================================= */
+.logo {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-orange);
+    margin-bottom: 0.5rem;
 }
+.instruccion, .contador-texto {
+    font-family: 'JetBrains Mono', monospace;
+}
+.qr-wrapper {
+    background: #ffffff;
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 0 40px rgba(247, 147, 26, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.25s ease;
+    margin: 2rem auto;
+    width: max-content;
+}
+.qr-wrapper.renovando { opacity: 0; }
+.barra-container {
+    width: 300px; height: 6px;
+    background: var(--glass-bg);
+    border-radius: 9999px;
+    overflow: hidden;
+    margin: 1rem auto;
+}
+.barra-progreso {
+    height: 100%;
+    background: var(--primary-orange);
+    width: 100%;
+    transform-origin: left;
+    transition: transform 1s linear;
+}
+.aviso { font-size: 0.8rem; color: rgba(255,255,255,0.3); }
+
+
+#mensaje, #bienvenida, #creado { margin-top: 1rem; min-height: 20px; font-weight: bold; }
