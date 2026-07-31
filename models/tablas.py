@@ -1,13 +1,13 @@
 from sqlalchemy import Integer, String, Column, ForeignKey, Boolean, Date, DateTime
 from models.almacen import miClaseBase
 
-
 class TablaUsuarios(miClaseBase):
     __tablename__ = "usuarios"
 
     id_usuario = Column(Integer, primary_key=True)
     usuario = Column(String(50), unique=True, nullable=False)
-    contrasena = Column(String(30), nullable=False)
+    # Aumentado a 255 para soportar el hash bcrypt de forma segura
+    contrasena = Column(String(255), nullable=False)
 
 
 class TablaClientes(miClaseBase):
@@ -53,7 +53,6 @@ class TablaAsistencia(miClaseBase):
     fecha = Column(Date, nullable=False)
     presente = Column(Boolean, default=False)
     modalidad_usada = Column(String(15), nullable=True)
-
     dentro_del_rango = Column(Boolean, nullable=True, default=None)
 
 

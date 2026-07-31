@@ -6,10 +6,9 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 from math import radians, sin, cos, sqrt, atan2
+from pydantic import BaseModel
 import socket
 import os
-
-
 
 def obtener_ip_local() -> str:
     try:
@@ -25,12 +24,9 @@ def obtener_base_url() -> str:
     base_url_env = os.getenv("BASE_URL")
     if base_url_env:
         return base_url_env.rstrip("/")
-    # Fallback solo para desarrollo local
     return f"http://{obtener_ip_local()}:8000"
 
 BASE_URL = obtener_base_url()
-
-
 CLASES_EN_CURSO: dict = {}
 
 from models.almacen import miClaseBase, abrir_puerta_bd, motor
@@ -38,7 +34,9 @@ from models.security_guard import (
     RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante, MarcarAsistencia,
     ConfigurarUbicacionAula
 )
-from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema
+
+# IMPORTANTE: Asegúrate de que estas tres funciones existan en archivo_seguridad.py
+from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema, encriptar_contrasena, verificar_contrasena
 from models.tablas import (
     TablaUsuarios, TablaClientes, TablaMaterias, TablaEstudiantes,
     TablaAsistencia, TablaGrabaciones
@@ -47,14 +45,26 @@ from models.sesion_qr import generar_nuevo_token, token_es_valido, SESIONES_QR_A
 from models.correo import enviar_correo_grabacion
 
 app = FastAPI()
+
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"))
 
+# ============================================================
+# CONFIGURACION DE SEGURIDAD CORS PARA PRODUCCION
+# ============================================================
+origenes_permitidos = [
+    "https:// cualquera.com", # lo reemplzao despues
+    "http://localhost:5500",           # Para pruebas locales
+    "http://127.0.0.1:5500",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origenes_permitidos,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["*"],
 )
 
@@ -69,31 +79,23 @@ miClaseBase.metadata.create_all(bind=motor)
 def home(request: Request):
     return templates.TemplateResponse(request, 'home.html')
 
-
 @app.get('/iniciar_sesion', response_class=HTMLResponse)
 def mostrar_login(request: Request):
     return templates.TemplateResponse(request, 'login.html')
-
-
 
 @app.get('/sign_up', response_class=HTMLResponse)
 def mostrar_signup(request: Request):
     return templates.TemplateResponse(request, 'signup.html')
 
-
 @app.get('/interface', response_class=HTMLResponse)
 def mostrar_interface(request: Request):
     return templates.TemplateResponse(request, 'interface.html')
-
 
 @app.get('/workspace', response_class=HTMLResponse)
 def mostrar_workspace(request: Request):
     return templates.TemplateResponse(request, 'workspace.html')
 
 
-# ============================================================
-# RUTAS REST — autenticacion del profesor
-# ============================================================
 
 @app.post('/login', status_code=status.HTTP_200_OK)
 def login(
@@ -110,7 +112,8 @@ def login(
             detail="Usuario no encontrado"
         )
 
-    if user_que_vino.contrasena != json_recibido.contrasena:
+
+    if not verificar_contrasena(json_recibido.contrasena, user_que_vino.contrasena):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Contrasena incorrecta!"
@@ -145,9 +148,12 @@ def crear_cliente(
             detail=f"Usuario {json_enviado.usuario} ya esta siendo utilizado."
         )
 
+   
+    contrasena_segura = encriptar_contrasena(json_enviado.contrasena)
+
     nuevo_usuario = TablaUsuarios(
         usuario=json_enviado.usuario,
-        contrasena=json_enviado.contrasena
+        contrasena=contrasena_segura
     )
     base_datos.add(nuevo_usuario)
     base_datos.flush()
@@ -175,7 +181,7 @@ def crear_cliente(
 
 
 # ============================================================
-# RUTAS REST — CRUD de materias (solo profesor logueado)
+# RUTAS REST — CRUD de materias
 # ============================================================
 
 @app.post("/crear_materia", status_code=status.HTTP_200_OK)
@@ -221,23 +227,14 @@ def obtener_mis_materias(
 # RUTAS HTML + REST — inscripcion publica de estudiantes
 # ============================================================
 
-
 @app.get('/inscripcion', response_class=HTMLResponse)
 def form_inscripcion_base(request: Request):
-    return templates.TemplateResponse(
-        request,
-        'inscripcion.html',
-        {"seccion": ""}
-    )
+    return templates.TemplateResponse(request, 'inscripcion.html', {"seccion": ""})
 
 
 @app.get('/inscribirse/{seccion}', response_class=HTMLResponse)
 def form_inscripcion(seccion: str, request: Request):
-    return templates.TemplateResponse(
-        request,
-        'inscripcion.html',
-        {"seccion": seccion}
-    )
+    return templates.TemplateResponse(request, 'inscripcion.html', {"seccion": seccion})
 
 
 @app.post('/inscribirse/{seccion}', status_code=status.HTTP_200_OK)
@@ -310,9 +307,6 @@ def obtener_link_inscripcion(
     return {"seccion": materia.seccion, "ruta": f"/inscribirse/{materia.seccion}"}
 
 
-# Guarda la ubicacion GPS del salon (el profesor la captura una sola vez,
-# estando fisicamente en el aula). Se usa despues para comparar contra la
-# ubicacion de cada estudiante presencial al marcar asistencia.
 @app.post("/materia/{id_materia}/configurar_ubicacion")
 def configurar_ubicacion_aula(
     id_materia: int,
@@ -359,17 +353,13 @@ def generar_qr_token(
             detail="Esa materia no existe o no te pertenece."
         )
 
-    # Registrar la clase como en curso (límite 3 horas)
     if id_materia not in CLASES_EN_CURSO:
         CLASES_EN_CURSO[id_materia] = datetime.utcnow()
 
     resultado = generar_nuevo_token(id_materia)
-    # Incluir la base_url para que la URL del QR funcione desde cualquier celular
     resultado["base_url"] = BASE_URL
     return resultado
 
-
-# ─── Página de vista grande del QR (abre en nueva pestaña, para proyectar) ───
 
 @app.get("/qr_pantalla/{id_materia}", response_class=HTMLResponse)
 def qr_pantalla(id_materia: int, request: Request):
@@ -380,11 +370,8 @@ def qr_pantalla(id_materia: int, request: Request):
     )
 
 
-
-
 @app.get("/materia/{id_materia}/generar_qr_token_publico")
 def generar_qr_token_publico(id_materia: int):
-    # Solo permite si ya hay una sesión activa para esta materia
     if id_materia not in SESIONES_QR_ACTIVAS and id_materia not in CLASES_EN_CURSO:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -394,8 +381,6 @@ def generar_qr_token_publico(id_materia: int):
     resultado["base_url"] = BASE_URL
     return resultado
 
-
-# ─── Endpoint para que workspace consulte si la clase sigue en curso (<3h) ───
 
 @app.get("/materia/{id_materia}/clase_en_curso")
 def clase_en_curso(
@@ -455,11 +440,6 @@ def marcar_asistencia(
         TablaMaterias.id_materia == id_materia
     ).first()
 
-    # aqui no bloqueamos a nadie por la ubicacion. Solo calculamos una etiqueta:
-    #   True  -> presencial, dentro del radio del aula
-    #   False -> presencial, marco pero esta lejos del aula (posible sospechoso)
-    #   None  -> no aplica (virtual) o no se pudo verificar (sin permiso de
-    #            ubicacion del celular, o el aula aun no tiene coordenadas)
     dentro_del_rango = None
 
     if estudiante.modalidad == "presencial" and materia.lat_aula and materia.lng_aula:
@@ -587,7 +567,6 @@ def listar_estudiantes_con_faltas(
     return resultado
 
 
-# FIX #5: agregar estudiante manualmente desde el workspace del profesor
 @app.post("/materia/{id_materia}/agregar_estudiante", status_code=status.HTTP_200_OK)
 def agregar_estudiante_manual(
     id_materia: int,
@@ -713,14 +692,13 @@ def eliminar_estudiante(
     return {"mensaje": "Estudiante eliminado del curso."}
 
 
-# ============================================================
-# RUTAS REST — publicar grabacion (sin cerrar_clase ni ubicacion)
-# ============================================================
+class UrlGrabacion(BaseModel):
+    url: str
 
 @app.post("/materia/{id_materia}/publicar_grabacion")
 def publicar_grabacion(
     id_materia: int,
-    url_video: str,
+    payload: UrlGrabacion,
     background_tasks: BackgroundTasks,
     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
     base_datos: Session = Depends(abrir_puerta_bd)
@@ -738,7 +716,7 @@ def publicar_grabacion(
 
     nueva_grabacion = TablaGrabaciones(
         id_materia=id_materia,
-        url_video=url_video,
+        url_video=payload.url,
         fecha_publicacion=datetime.utcnow()
     )
     base_datos.add(nueva_grabacion)
@@ -750,7 +728,7 @@ def publicar_grabacion(
     lista_correos = [e.correo for e in estudiantes]
 
     background_tasks.add_task(
-        enviar_correo_grabacion, lista_correos, materia.nombre, url_video
+        enviar_correo_grabacion, lista_correos, materia.nombre, payload.url
     )
 
     return {
