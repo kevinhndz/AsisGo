@@ -9,18 +9,7 @@ from math import radians, sin, cos, sqrt, atan2
 import socket
 import os
 
-# ------------------------------------------------------------------
-# BASE_URL: la direccion que se mete dentro del QR para que el celular
-# del estudiante sepa a donde conectarse.
-#
-# - En produccion (deploy real, vendido a la universidad): defines
-#   BASE_URL en el .env del servidor, ej: BASE_URL=https://asisgo.tudominio.com
-#   y listo, nunca mas tocas este archivo al desplegar.
-#
-# - En desarrollo local (tu laptop en la misma WiFi que el celular de
-#   prueba), si NO defines BASE_URL, se auto-detecta la IP de la red
-#   local como antes, solo para que sea comodo probar sin configurar nada.
-# ------------------------------------------------------------------
+
 
 def obtener_ip_local() -> str:
     try:
