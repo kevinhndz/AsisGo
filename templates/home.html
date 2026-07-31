@@ -1,110 +1,128 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asis GO+ — Inicio</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-    tailwind.config = {
-        theme: { extend: { colors: {
-            "background":"#111412","surface":"#111412","surface-container":"#1d201e",
-            "surface-container-low":"#191c1a","surface-container-high":"#272b28",
-            "on-background":"#e1e3df","on-surface":"#e1e3df","on-surface-variant":"#bfc9c1",
-            "primary":"#92d5b2","primary-fixed":"#adf1cd","on-primary":"#003825",
-            "on-primary-fixed":"#002114","outline":"#89938c","outline-variant":"#404943"
-        }}}
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Asis GO+ - Inicio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'bg-dark': '#1a1a1a',
+        'bg-light': '#fdfcf7',
+        'accent-orange': '#f97316',
+      }
     }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
-        @keyframes subtleZoom { 0%{transform:scale(1);}100%{transform:scale(1.06);} }
-        .zoom-bg { animation: subtleZoom 18s ease-in-out infinite alternate; }
-        @keyframes fadeUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
-        .fade-up { animation: fadeUp 0.7s ease forwards; }
-        .fade-up-2 { animation: fadeUp 0.7s 0.15s ease forwards; opacity:0; }
-        .fade-up-3 { animation: fadeUp 0.7s 0.3s ease forwards; opacity:0; }
-    </style>
+  }
+}
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .bottom-cutout { border-top-left-radius: 2rem; }
+</style>
 </head>
-<body class="bg-background text-on-background min-h-screen flex flex-col">
+<body class="bg-[#f0ede6] min-h-screen flex items-center justify-center p-2 sm:p-4 md:p-8">
 
-<!-- Background -->
-<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute inset-0 zoom-bg opacity-20" style="background:url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?q=80&w=2070&auto=format&fit=crop') center/cover no-repeat; filter:grayscale(1);"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-background via-background/80 to-background"></div>
-    <div class="absolute top-1/4 right-1/4 w-96 h-96 bg-primary opacity-10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-1/4 left-1/4 w-64 h-64 bg-primary opacity-5 rounded-full blur-3xl"></div>
-</div>
+<main class="w-full max-w-7xl mx-auto bg-bg-dark rounded-[2.5rem] p-2 sm:p-4 md:p-6 overflow-hidden flex flex-col min-h-[90vh] md:min-h-[800px] shadow-2xl relative">
 
-<!-- Nav -->
-<header class="relative z-10 flex items-center justify-between px-6 md:px-16 py-5 border-b border-outline-variant/10 bg-surface/60 backdrop-blur-xl">
-    <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-primary-fixed rounded-xl flex items-center justify-center shadow-md shadow-primary/20">
-            <span class="material-symbols-outlined text-on-primary-fixed" style="font-size:20px; font-variation-settings:'FILL' 1;">rocket_launch</span>
+  <!-- Nav -->
+  <header class="flex justify-between items-start z-20 relative px-2 md:px-4 pt-2 md:pt-4">
+    <!-- Logo -->
+    <div class="flex items-center gap-3 bg-bg-dark rounded-br-2xl pr-4 pb-2">
+      <div class="w-8 h-8 rounded-lg border-2 border-[#e5e5e5] flex items-center justify-center">
+        <svg class="h-4 w-4 text-[#e5e5e5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+        </svg>
+      </div>
+      <span class="text-white font-medium text-lg tracking-wide">ASIS GO+</span>
+    </div>
+
+    <!-- Nav pill — desktop -->
+    <nav class="hidden md:flex bg-bg-light px-8 py-3 rounded-full shadow-sm items-center gap-8 -mt-2">
+      <a class="text-sm font-medium text-gray-800 hover:text-black transition-colors" href="/">Inicio</a>
+      <a class="text-sm font-medium text-gray-600 hover:text-black transition-colors" href="#">Servicios</a>
+      <a class="text-sm font-medium text-gray-600 hover:text-black transition-colors" href="#">Precios</a>
+      <a class="text-sm font-medium text-gray-600 hover:text-black transition-colors" href="#">Contacto</a>
+    </nav>
+
+    <!-- Right actions -->
+    <div class="flex items-center gap-3 bg-bg-dark rounded-bl-2xl pl-4 pb-2">
+      <a href="/iniciar_sesion"
+         class="hidden md:flex items-center gap-2 text-white border border-gray-600 rounded-full px-4 py-2 text-sm hover:bg-gray-800 transition-colors">
+        Iniciar sesión
+      </a>
+      <a href="/sign_up"
+         class="flex items-center gap-3 text-white border border-gray-600 rounded-full pl-2 pr-4 py-1.5 text-sm hover:bg-gray-800 transition-colors">
+        <div class="bg-white text-black rounded-full p-1">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+          </svg>
         </div>
-        <span class="text-xl font-black tracking-tighter">Asis <span class="text-primary">GO+</span></span>
+        Conectar
+      </a>
     </div>
-    <div class="flex items-center gap-3">
-        <a href="/iniciar_sesion" class="text-sm font-bold text-on-surface-variant hover:text-on-surface transition-colors px-4 py-2">Inicia sesión</a>
-        <a href="/sign_up" class="bg-primary text-on-primary text-sm font-bold px-5 py-2.5 rounded-xl hover:bg-primary-fixed transition-all hover:scale-105 active:scale-95 shadow-md shadow-primary/20">
-            Crear cuenta
-            <span class="material-symbols-outlined text-base ml-1 align-middle">arrow_forward</span>
-        </a>
-    </div>
-</header>
+  </header>
 
-<!-- Hero -->
-<main class="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
-    <div class="fade-up flex items-center gap-3 mb-6 justify-center">
-        <div class="h-0.5 w-10 bg-primary rounded-full"></div>
-        <span class="text-xs font-bold text-primary tracking-widest uppercase">Innovación Educativa</span>
-        <div class="h-0.5 w-10 bg-primary rounded-full"></div>
-    </div>
+  <!-- Hero -->
+  <section class="bg-bg-light flex-1 rounded-[2.5rem] mt-[-3rem] md:mt-[-4rem] flex flex-col md:flex-row relative z-10 pt-20 md:pt-24 pb-8 md:pb-12 px-6 md:px-16 overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
 
-    <h1 class="fade-up-2 text-5xl md:text-7xl font-black tracking-tighter text-on-background max-w-3xl leading-tight mb-6">
-        Asistencia sin <span class="text-primary">fricciones</span>
-    </h1>
+    <!-- Left: copy -->
+    <div class="flex-1 flex flex-col justify-center relative z-20 max-w-2xl mt-12 md:mt-0">
+      <h1 class="text-5xl md:text-7xl lg:text-[5.5rem] leading-[1.1] font-semibold text-gray-900 mb-6 tracking-tight">
+        Asistencia sin
+        <span class="flex items-center flex-wrap gap-4 mt-2">
+          <div class="w-12 h-12 md:w-16 md:h-16 inline-flex flex-shrink-0 mt-2">
+            <svg class="w-full h-full" fill="none" viewBox="0 0 100 100">
+              <path d="M50 15L85 32.5V67.5L50 85L15 67.5V32.5L50 15Z" fill="white" stroke="#f97316" stroke-width="4"/>
+              <path d="M50 30L70 40V60L50 70L30 60V40L50 30Z" fill="none" stroke="black" stroke-width="3"/>
+              <circle cx="50" cy="50" fill="black" r="5"/>
+            </svg>
+          </div>
+          fricciones.
+        </span>
+      </h1>
 
-    <p class="fade-up-3 text-base md:text-lg text-on-surface-variant max-w-xl mb-10 leading-relaxed">
-        Sistema de gestión de asistencia e impartición híbrida. QR inteligente, presencia en tiempo real, grabaciones automáticas.
-    </p>
-
-    <div class="fade-up-3 flex flex-col sm:flex-row gap-4 justify-center w-full max-w-sm">
+      <div class="mt-8 md:mt-16 border-t border-gray-300 pt-6">
         <a href="/iniciar_sesion"
-            class="group relative bg-primary-fixed text-on-primary-fixed font-bold px-8 py-4 rounded-xl overflow-hidden hover:shadow-[0_0_30px_rgba(146,213,178,0.35)] transition-all hover:scale-105 active:scale-95 text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-            Inicia sesión
-            <span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
+           class="inline-flex items-center gap-3 text-lg font-medium text-gray-900 group">
+          <div class="bg-black text-white rounded-full p-1.5 group-hover:bg-gray-800 transition-colors">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+            </svg>
+          </div>
+          Comenzar
         </a>
-        <a href="/sign_up"
-            class="bg-surface-container text-on-surface font-bold px-8 py-4 rounded-xl hover:bg-surface-container-high transition-all active:scale-95 text-sm uppercase tracking-widest flex items-center justify-center gap-2 border border-outline-variant/30">
-            Crear cuenta
-        </a>
+        <p class="text-gray-500 text-sm md:text-base mt-4 max-w-md leading-relaxed">
+          Gestión de asistencia híbrida diseñada para la claridad y la velocidad.
+          QR dinámico, validación por ubicación y grabaciones automáticas.
+        </p>
+      </div>
     </div>
 
-    <!-- Feature chips -->
-    <div class="fade-up-3 mt-16 flex flex-wrap justify-center gap-3 max-w-lg">
-        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
-            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">qr_code_scanner</span> QR dinámico
-        </div>
-        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
-            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">location_on</span> Validación por ubicación
-        </div>
-        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
-            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">videocam</span> Grabaciones a correo
-        </div>
-        <div class="flex items-center gap-2 bg-surface-container/80 backdrop-blur rounded-full px-4 py-2 border border-outline-variant/20 text-sm text-on-surface-variant">
-            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings:'FILL' 1;">devices</span> Modalidad híbrida
-        </div>
+    <!-- Right: graphic -->
+    <div class="flex-1 relative z-20 flex justify-center items-center mt-12 md:mt-0 min-h-[300px] md:min-h-0">
+      <div class="relative w-full max-w-[500px] aspect-square flex items-center justify-center">
+        <img
+          alt="Asis GO+ Gráfico"
+          class="w-full h-auto object-contain drop-shadow-2xl opacity-80"
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_sjurwOSXZmrGxmCC9Ve3qSKwaSs0cZVs2wQ6iVZVCEGBKPRT4yuuocmSRXJ8c_wychPAOizKGRMx9_dzLb6d67QUX0yCJC_BzXeSGrmu-8di0Tb195rRko3yq0aOzHBcnb9265VBOOo_nnnrAMdv1DTmg6ksmthWSchnDXHGXcmMu8348mgr_R_fETGomJXdj2v5NBvtFJCo5VEB0cLn93XYKVOVXoqkIVXLY4mupye1Mt9zab3vsA">
+        <div class="absolute inset-0 bg-gradient-to-t from-bg-light/20 to-transparent mix-blend-overlay"></div>
+      </div>
     </div>
+  </section>
+
+  <!-- Bottom bar -->
+  <div class="absolute bottom-0 right-0 bg-bg-dark z-30 bottom-cutout pl-6 pt-4 pb-4 pr-6 sm:pr-8 flex items-center gap-4 text-white">
+    <a href="/iniciar_sesion" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Iniciar Sesión</a>
+    <div class="flex bg-gray-800 rounded-full p-1 border border-gray-700">
+      <a href="/sign_up" class="px-4 py-1.5 rounded-full text-sm font-medium bg-white text-black shadow-sm hover:bg-gray-100 transition-colors">Registrar</a>
+    </div>
+  </div>
+
 </main>
-
-<footer class="relative z-10 border-t border-outline-variant/10 py-5 px-6 md:px-16 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-on-surface-variant">
-    <span class="font-bold text-primary">Asis GO+</span>
-    <span>© 2025 Todos los derechos reservados.</span>
-</footer>
-
 </body>
 </html>
