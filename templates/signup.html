@@ -1,170 +1,198 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro — Asis GO+</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-    tailwind.config = {
-        theme: { extend: { colors: {
-            "background":"#111412","surface":"#111412","surface-container":"#1d201e",
-            "surface-container-low":"#191c1a","surface-container-high":"#272b28",
-            "surface-container-lowest":"#0b0f0d","on-background":"#e1e3df",
-            "on-surface":"#e1e3df","on-surface-variant":"#bfc9c1",
-            "primary":"#92d5b2","primary-fixed":"#adf1cd","on-primary":"#003825",
-            "on-primary-fixed":"#002114","outline":"#89938c","outline-variant":"#404943"
-        }}}
-    }
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 24px; line-height: 1; display: inline-block; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; }
-        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px #191c1a inset !important; -webkit-text-fill-color: #e1e3df !important; }
-        @keyframes slideUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-        .animate-up { animation: slideUp 0.6s ease forwards; }
-    </style>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
+<title>Registro — Asis GO+</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = { darkMode:"class", theme:{ extend:{ colors:{
+  "background":"#131313","surface":"#131313",
+  "surface-container":"#201f1f","surface-container-high":"#2a2a2a",
+  "surface-container-highest":"#353534","surface-bright":"#3a3939",
+  "surface-container-low":"#1c1b1b",
+  "on-surface":"#e5e2e1","on-surface-variant":"#e2bfb0",
+  "primary":"#ffb693","primary-fixed":"#ffdbcc","on-primary":"#561f00",
+  "tertiary":"#8bdc00","tertiary-container":"#6baa00","on-tertiary-container":"#203700",
+  "outline":"#a98a7d","outline-variant":"#5a4136","error":"#ffb4ab"
+}, fontFamily:{
+  "body-md":["Geist"],"body-sm":["Geist"],"headline-lg":["Geist"],
+  "label-bold":["Geist"],"label-caps":["Geist"],
+  "headline-xl":["Geist"],"headline-lg-mobile":["Geist"]
+}, fontSize:{
+  "body-md":["16px",{lineHeight:"24px",fontWeight:"400"}],
+  "body-sm":["14px",{lineHeight:"20px",fontWeight:"400"}],
+  "headline-xl":["48px",{lineHeight:"56px",letterSpacing:"-0.02em",fontWeight:"700"}],
+  "headline-lg-mobile":["24px",{lineHeight:"32px",fontWeight:"600"}],
+  "label-caps":["12px",{lineHeight:"16px",letterSpacing:"0.05em",fontWeight:"600"}],
+  "label-bold":["14px",{lineHeight:"20px",fontWeight:"600"}]
+}}}}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
+<style>
+  .material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-size:24px;line-height:1;display:inline-block;white-space:nowrap;-webkit-font-smoothing:antialiased;}
+  input:-webkit-autofill{-webkit-box-shadow:0 0 0 30px #201f1f inset !important;-webkit-text-fill-color:#e5e2e1 !important;}
+  select option{background:#201f1f;color:#e5e2e1;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .animate-fade-in{animation:fadeIn 0.5s ease-out;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .animate-spin{animation:spin 1s linear infinite;}
+</style>
 </head>
-<body class="bg-background text-on-background min-h-screen flex items-center justify-center p-4">
+<body class="bg-background pt-safe pb-safe" style="font-family:'Geist',sans-serif;">
 
-<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
-    <div class="absolute top-[-10%] right-[-5%] w-96 h-96 bg-primary opacity-10 rounded-full blur-3xl"></div>
-    <div class="absolute bottom-[-5%] left-[-5%] w-72 h-72 bg-primary opacity-5 rounded-full blur-3xl"></div>
-</div>
-
-<main class="relative z-10 w-full max-w-md animate-up py-8">
+<main class="relative w-full min-h-screen">
+  <div class="flex flex-col w-full h-full p-10 gap-16">
 
     <!-- Header -->
-    <div class="mb-8">
-        <div class="flex items-center gap-3 mb-3">
-            <div class="h-0.5 w-10 bg-primary rounded-full"></div>
-            <span class="text-xs font-bold text-primary tracking-widest uppercase">Nueva Cuenta</span>
+    <div class="flex flex-col gap-2 items-center text-center">
+      <div class="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center shadow-lg relative overflow-hidden mb-4">
+        <div class="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
+        <span class="material-symbols-outlined text-4xl text-primary relative z-10" style="font-variation-settings:'FILL' 1;">school</span>
+      </div>
+      <h1 class="font-headline-xl text-headline-xl text-on-surface">Únete a Asis GO+</h1>
+      <p class="font-body-md text-body-md text-on-surface-variant max-w-sm mx-auto">
+        Crea tu cuenta de administrador para gestionar la asistencia con precisión.
+      </p>
+    </div>
+
+    <!-- Form -->
+    <form class="flex flex-col gap-6 max-w-md w-full mx-auto" id="formulario-registro" onsubmit="handleSignup(event)">
+
+      <!-- Nombre -->
+      <div class="flex flex-col gap-1">
+        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Nombre Completo</label>
+        <div class="relative group">
+          <input id="nombre" type="text" required placeholder="Ej. María García"
+            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
+          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">person</span>
         </div>
-        <h1 class="text-4xl font-black tracking-tighter text-on-background">Únete a <span class="text-primary">Asis GO+</span></h1>
-        <p class="text-sm text-on-surface-variant mt-2">Gestión inteligente de asistencia para profesores.</p>
-    </div>
+      </div>
 
-    <!-- Card -->
-    <div class="bg-surface-container-high rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+      <!-- Correo -->
+      <div class="flex flex-col gap-1">
+        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Correo Electrónico</label>
+        <div class="relative group">
+          <input id="correo" type="email" required placeholder="usuario@universidad.edu"
+            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
+          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">mail</span>
+        </div>
+      </div>
 
-        <form id="formulario-registro" class="flex flex-col gap-4">
+      <!-- Teléfono -->
+      <div class="flex flex-col gap-1">
+        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Teléfono</label>
+        <div class="relative group">
+          <input id="telefono" type="text" required placeholder="+504 9999-9999"
+            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
+          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">call</span>
+        </div>
+      </div>
 
-            <!-- Nombre -->
-            <div class="group">
-                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Nombre Completo</label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">person</span>
-                    <input id="nombre" type="text" required placeholder="Ej. María García"
-                        class="w-full bg-surface-container-lowest rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
-                </div>
-            </div>
+      <!-- Usuario -->
+      <div class="flex flex-col gap-1">
+        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Usuario <span class="normal-case tracking-normal">(6–10 caracteres)</span></label>
+        <div class="relative group">
+          <input id="usuario" type="text" required placeholder="mi_usuario"
+            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
+          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">alternate_email</span>
+        </div>
+      </div>
 
-            <!-- Correo -->
-            <div class="group">
-                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Correo Electrónico</label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">mail</span>
-                    <input id="correo" type="email" required placeholder="usuario@universidad.edu"
-                        class="w-full bg-surface-container-lowest rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
-                </div>
-            </div>
+      <!-- Contraseña -->
+      <div class="flex flex-col gap-1">
+        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Contraseña <span class="normal-case tracking-normal">(8–15 caracteres)</span></label>
+        <div class="relative group">
+          <input id="contrasena" type="password" required placeholder="••••••••"
+            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
+          <button type="button" onclick="togglePass()"
+            class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface transition-colors">
+            <span class="material-symbols-outlined" id="eye-icon">visibility</span>
+          </button>
+        </div>
+      </div>
 
-            <!-- Teléfono -->
-            <div class="group">
-                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Teléfono</label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">call</span>
-                    <input id="telefono" type="text" required placeholder="+504 9999-9999"
-                        class="w-full bg-surface-container-lowest rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
-                </div>
-            </div>
+      <!-- Mensaje error -->
+      <p id="msg-error" class="text-sm font-semibold text-center text-error min-h-[18px]"></p>
 
-            <div class="h-px bg-outline-variant/30 my-1"></div>
+      <!-- Submit -->
+      <button type="submit" id="btn-submit"
+        class="w-full h-14 mt-2 bg-primary text-on-primary rounded-full font-label-bold text-label-bold flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+        <span id="btn-text">Crear cuenta</span>
+        <span class="material-symbols-outlined text-sm" id="btn-icon" style="font-variation-settings:'FILL' 1;">arrow_forward</span>
+        <span id="btn-loader" class="hidden"><span class="material-symbols-outlined animate-spin">progress_activity</span></span>
+      </button>
 
-            <!-- Usuario -->
-            <div class="group">
-                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Usuario <span class="normal-case tracking-normal font-normal">(6–10 caracteres)</span></label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">alternate_email</span>
-                    <input id="usuario" type="text" required placeholder="mi_usuario"
-                        class="w-full bg-surface-container-lowest rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
-                </div>
-            </div>
-
-            <!-- Contraseña -->
-            <div class="group">
-                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Contraseña <span class="normal-case tracking-normal font-normal">(8–15 caracteres)</span></label>
-                <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">lock</span>
-                    <input id="contrasena" type="password" required placeholder="••••••••"
-                        class="w-full bg-surface-container-lowest rounded-xl py-3.5 pl-11 pr-12 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
-                    <button type="button" onclick="togglePass()" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors">
-                        <span class="material-symbols-outlined text-xl" id="eye-icon">visibility</span>
-                    </button>
-                </div>
-            </div>
-
-            <p id="mensaje" class="text-sm font-semibold text-center min-h-[18px]"></p>
-
-            <button type="submit" id="btn-submit"
-                class="group relative w-full bg-primary text-on-primary font-bold text-sm py-4 rounded-xl overflow-hidden transition-all hover:shadow-[0_0_20px_rgba(146,213,178,0.3)] active:scale-95 mt-1 tracking-widest uppercase flex items-center justify-center gap-2">
-                Registrarse
-                <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
-            </button>
-        </form>
-    </div>
-
-    <p class="text-center text-sm text-on-surface-variant mt-6">
+      <p class="font-body-sm text-body-sm text-on-surface-variant text-center mt-2">
         ¿Ya tienes cuenta?
-        <a href="/iniciar_sesion" class="text-primary font-bold ml-1 hover:underline underline-offset-4">Inicia sesión aquí</a>
-    </p>
-    <p class="text-center mt-3">
-        <a href="/" class="text-xs text-outline hover:text-on-surface transition-colors">← Volver al inicio</a>
-    </p>
+        <a href="/iniciar_sesion" class="text-primary hover:text-primary-fixed transition-colors ml-1 font-semibold">Inicia sesión</a>
+      </p>
+    </form>
+
+    <!-- Estado de éxito (oculto hasta submit exitoso) -->
+    <div id="success-state" class="hidden flex-col items-center justify-center text-center py-12 max-w-sm mx-auto animate-fade-in">
+      <div class="w-20 h-20 rounded-full bg-tertiary-container flex items-center justify-center shadow-[0_0_40px_rgba(107,170,0,0.3)] mb-6">
+        <span class="material-symbols-outlined text-5xl text-on-tertiary-container" style="font-variation-settings:'FILL' 1;">check_circle</span>
+      </div>
+      <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-2">¡Bienvenido a bordo!</h2>
+      <p class="font-body-md text-body-md text-on-surface-variant mb-8">
+        Tu cuenta ha sido creada. Redirigiendo al panel...
+      </p>
+    </div>
+
+  </div>
 </main>
 
 <script>
 function togglePass() {
-    const inp = document.getElementById('contrasena');
-    const ico = document.getElementById('eye-icon');
-    if (inp.type === 'password') { inp.type = 'text'; ico.textContent = 'visibility_off'; }
-    else { inp.type = 'password'; ico.textContent = 'visibility'; }
+  const inp = document.getElementById('contrasena');
+  const ico = document.getElementById('eye-icon');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  ico.textContent = inp.type === 'password' ? 'visibility' : 'visibility_off';
 }
 
-document.getElementById("formulario-registro").addEventListener("submit", async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById("btn-submit");
-    btn.disabled = true;
-    btn.innerHTML = '<span class="material-symbols-outlined text-lg">progress_activity</span> Procesando...';
+async function handleSignup(e) {
+  e.preventDefault();
+  const btn    = document.getElementById('btn-submit');
+  const txt    = document.getElementById('btn-text');
+  const ico    = document.getElementById('btn-icon');
+  const loader = document.getElementById('btn-loader');
+  const msgEl  = document.getElementById('msg-error');
 
-    const nombre    = document.getElementById("nombre").value;
-    const correo    = document.getElementById("correo").value;
-    const telefono  = document.getElementById("telefono").value;
-    const usuario   = document.getElementById("usuario").value;
-    const contrasena = document.getElementById("contrasena").value;
+  btn.classList.add('pointer-events-none', 'opacity-80');
+  ico.classList.add('hidden');
+  loader.classList.remove('hidden');
+  msgEl.innerText = '';
 
-    const respuesta = await fetch("/sign_up", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nombre, correo, telefono, usuario, contrasena })
-    });
-    const datos = await respuesta.json();
+  const resp  = await fetch('/sign_up', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nombre:    document.getElementById('nombre').value,
+      correo:    document.getElementById('correo').value,
+      telefono:  document.getElementById('telefono').value,
+      usuario:   document.getElementById('usuario').value,
+      contrasena: document.getElementById('contrasena').value
+    })
+  });
+  const datos = await resp.json();
 
-    if (respuesta.ok) {
-        sessionStorage.setItem("miTokenJWT", datos.token);
-        btn.innerHTML = '<span class="material-symbols-outlined text-lg">check_circle</span> ¡Listo!';
-        setTimeout(() => window.location.href = "/workspace", 800);
-    } else {
-        const msg = document.getElementById("mensaje");
-        msg.innerText = datos.detail;
-        msg.style.color = "#f87171";
-        btn.disabled = false;
-        btn.innerHTML = 'Registrarse <span class="material-symbols-outlined text-lg">arrow_forward</span>';
-    }
-});
+  loader.classList.add('hidden');
+  ico.classList.remove('hidden');
+
+  if (resp.ok) {
+    sessionStorage.setItem('miTokenJWT', datos.token);
+    document.getElementById('formulario-registro').classList.add('hidden');
+    const s = document.getElementById('success-state');
+    s.classList.remove('hidden');
+    s.classList.add('flex');
+    setTimeout(() => window.location.href = '/workspace', 1800);
+  } else {
+    msgEl.innerText = datos.detail;
+    btn.classList.remove('pointer-events-none', 'opacity-80');
+  }
+}
 </script>
 </body>
 </html>
