@@ -6,6 +6,10 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
+import bcrypt
+
+
+
 load_dotenv()
 
 FIRMA_DEL_DIRECTOR = os.getenv("FIRMA_DEL_DIRECTOR")
@@ -19,12 +23,12 @@ lector_magnetico = OAuth2PasswordBearer(tokenUrl="login")
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def encriptar_contrasena(contrasena_plana: str) -> str:
+    # Retorna la contraseña tal cual (texto plano original)
+    return contrasena_plana
 
-    return pwd_context.hash(contrasena_plana)
-
-def verificar_contrasena(contrasena_plana: str, contrasena_hasheada: str) -> bool:
-   
-    return pwd_context.verify(contrasena_plana, contrasena_hasheada)
+def verificar_contrasena(contrasena_plana: str, contrasena_guardada: str) -> bool:
+    # Compara directamente el texto plano
+    return contrasena_plana == contrasena_guardada
 
 
 # 2. EMITIR LA CREDENCIAL (Solo se usa cuando el profesor hace Login)
