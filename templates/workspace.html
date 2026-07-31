@@ -8,31 +8,31 @@
     <script>
     tailwind.config = {
         theme: { extend: { colors: {
-            "background":"#111412","surface":"#111412","surface-container":"#1d201e",
-            "surface-container-low":"#191c1a","surface-container-high":"#272b28",
-            "surface-container-lowest":"#0b0f0d","on-background":"#e1e3df",
-            "on-surface":"#e1e3df","on-surface-variant":"#bfc9c1",
-            "primary":"#92d5b2","primary-fixed":"#adf1cd","on-primary":"#003825",
-            "on-primary-fixed":"#002114","outline":"#89938c","outline-variant":"#404943",
-            "error":"#f87171"
+            "background":"#131313","surface":"#131313","surface-container":"#201f1f",
+            "surface-container-low":"#1c1b1b","surface-container-high":"#2a2a2a",
+            "surface-container-lowest":"#0e0e0e","on-background":"#e5e2e1",
+            "on-surface":"#e5e2e1","on-surface-variant":"#e2bfb0",
+            "primary":"#ffb693","primary-fixed":"#ffdbcc","on-primary":"#561f00",
+            "on-primary-fixed":"#351000","outline":"#a98a7d","outline-variant":"#5a4136",
+            "error":"#ffb4ab"
         }}}
     }
     </script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Geist', sans-serif; }
         .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
-        input:-webkit-autofill, select:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #191c1a inset !important; -webkit-text-fill-color:#e1e3df !important; }
-        select option { background:#1d201e; color:#e1e3df; }
+        input:-webkit-autofill, select:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #1c1b1b inset !important; -webkit-text-fill-color:#e5e2e1 !important; }
+        select option { background:#201f1f; color:#e5e2e1; }
 
         /* Tabla */
-        .t-head th { background:rgba(146,213,178,0.08); color:#92d5b2; padding:10px 14px; text-align:left; font-weight:700; font-size:0.75rem; letter-spacing:0.05em; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.08); }
-        .t-body td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); color:#e1e3df; font-size:0.85rem; vertical-align:middle; }
+        .t-head th { background:rgba(146,213,178,0.08); color:#ffb693; padding:10px 14px; text-align:left; font-weight:700; font-size:0.75rem; letter-spacing:0.05em; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.08); }
+        .t-body td { padding:10px 14px; border-bottom:1px solid rgba(255,255,255,0.04); color:#e5e2e1; font-size:0.85rem; vertical-align:middle; }
         .t-body tr:hover td { background:rgba(255,255,255,0.02); }
-        .t-vivo th { background:rgba(146,213,178,0.1); color:#92d5b2; padding:8px 12px; text-align:left; font-weight:700; font-size:0.75rem; border-bottom:1px solid rgba(146,213,178,0.2); }
-        .t-vivo td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85rem; color:#e1e3df; }
+        .t-vivo th { background:rgba(146,213,178,0.1); color:#ffb693; padding:8px 12px; text-align:left; font-weight:700; font-size:0.75rem; border-bottom:1px solid rgba(146,213,178,0.2); }
+        .t-vivo td { padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.04); font-size:0.85rem; color:#e5e2e1; }
 
         /* Modales */
         .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
@@ -453,7 +453,7 @@ async function guardarEstudiante() {
     const resp   = await fetch(url, { method, headers:hdrs(), body:JSON.stringify(body) });
     const datos  = await resp.json();
     if (resp.ok) { cerrarModalForm(); cargarEstudiantes(); }
-    else { msgEl.innerText = datos.detail; msgEl.style.color = "#f87171"; }
+    else { msgEl.innerText = datos.detail; msgEl.style.color = "#ffb4ab"; }
 }
 
 async function confirmarEliminar(idEst) {
@@ -466,16 +466,16 @@ async function confirmarEliminar(idEst) {
 // ── CONFIGURAR UBICACIÓN AULA ────────────────────────────────
 function configurarUbicacionAula() {
     const el = document.getElementById("estado-ubicacion-aula");
-    if (!navigator.geolocation) { el.innerText = "Tu navegador no soporta geolocalización."; el.style.color="#f87171"; return; }
-    el.innerText = "Obteniendo tu ubicación..."; el.style.color = "#bfc9c1";
+    if (!navigator.geolocation) { el.innerText = "Tu navegador no soporta geolocalización."; el.style.color="#ffb4ab"; return; }
+    el.innerText = "Obteniendo tu ubicación..."; el.style.color = "#e2bfb0";
     navigator.geolocation.getCurrentPosition(async function(pos) {
         const resp  = await fetch(`/materia/${idMateriaActual}/configurar_ubicacion`, {
             method:"POST", headers:hdrs(), body:JSON.stringify({lat:pos.coords.latitude, lng:pos.coords.longitude})
         });
         const datos = await resp.json();
-        if (resp.ok) { el.innerText = "✓ Ubicación del aula guardada."; el.style.color="#92d5b2"; }
-        else { el.innerText = datos.detail; el.style.color="#f87171"; }
-    }, function() { el.innerText = "No se pudo obtener ubicación."; el.style.color="#f87171"; });
+        if (resp.ok) { el.innerText = "✓ Ubicación del aula guardada."; el.style.color="#ffb693"; }
+        else { el.innerText = datos.detail; el.style.color="#ffb4ab"; }
+    }, function() { el.innerText = "No se pudo obtener ubicación."; el.style.color="#ffb4ab"; });
 }
 
 // ── QR ───────────────────────────────────────────────────────
@@ -518,7 +518,7 @@ async function publicarGrabacion() {
     const datos = await resp.json();
     const el    = document.getElementById("estado-grabacion");
     el.innerText   = resp.ok ? "✓ " + datos.mensaje : datos.detail;
-    el.style.color = resp.ok ? "#92d5b2" : "#f87171";
+    el.style.color = resp.ok ? "#ffb693" : "#ffb4ab";
     if (resp.ok) document.getElementById("url-grabacion").value = "";
 }
 

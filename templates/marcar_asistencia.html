@@ -8,21 +8,21 @@
     <script>
     tailwind.config = {
         theme: { extend: { colors: {
-            "background":"#111412","surface":"#111412","surface-container":"#1d201e",
-            "surface-container-low":"#191c1a","surface-container-high":"#272b28",
-            "surface-container-lowest":"#0b0f0d","on-background":"#e1e3df",
-            "on-surface":"#e1e3df","on-surface-variant":"#bfc9c1",
-            "primary":"#92d5b2","primary-fixed":"#adf1cd","on-primary":"#003825",
-            "on-primary-fixed":"#002114","outline":"#89938c","outline-variant":"#404943"
+            "background":"#131313","surface":"#131313","surface-container":"#201f1f",
+            "surface-container-low":"#1c1b1b","surface-container-high":"#2a2a2a",
+            "surface-container-lowest":"#0e0e0e","on-background":"#e5e2e1",
+            "on-surface":"#e5e2e1","on-surface-variant":"#e2bfb0",
+            "primary":"#ffb693","primary-fixed":"#ffdbcc","on-primary":"#561f00",
+            "on-primary-fixed":"#351000","outline":"#a98a7d","outline-variant":"#5a4136"
         }}}
     }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@100..900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Geist', sans-serif; }
         .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
-        input:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #191c1a inset !important; -webkit-text-fill-color:#e1e3df !important; }
+        input:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #1c1b1b inset !important; -webkit-text-fill-color:#e5e2e1 !important; }
         @keyframes pulse-ring { 0%{transform:scale(0.8);opacity:0.8;} 100%{transform:scale(1.4);opacity:0;} }
         .pulse-ring { animation: pulse-ring 1.5s ease infinite; }
     </style>
@@ -142,7 +142,7 @@ document.getElementById("formulario-asistencia").addEventListener("submit", asyn
     } else {
         const msg = document.getElementById("mensaje");
         msg.innerText = datos.detail;
-        msg.style.color = "#f87171";
+        msg.style.color = "#ffb4ab";
         btn.disabled = false;
         btn.innerHTML = '<span class="material-symbols-outlined text-lg">how_to_reg</span> Marcar Asistencia';
     }
