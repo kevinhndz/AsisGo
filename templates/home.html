@@ -3,7 +3,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
 <title>Asis GO+ - Ultra-PRO Hybrid Attendance</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
 <script>
 tailwind.config = {
@@ -61,12 +61,14 @@ tailwind.config = {
 
   .text-gradient {
     background: linear-gradient(to bottom, #ffffff 40%, #94a3b8 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
   .accent-gradient {
     background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
@@ -196,39 +198,39 @@ tailwind.config = {
 </div>
 </div>
 </div>
-<!-- Floating Widget 1: Marcaje Widget -->
-<div class="absolute -top-20 -right-12 md:-right-24 glass-card rounded-2xl p-4 w-56 shadow-2xl animate-float stagger-1 border-white/20">
+<!-- Floating Widget 1: Marcaje Widget (más grande, misma posición) -->
+<div class="absolute -top-20 -right-12 md:-right-24 glass-card rounded-2xl p-[28px] w-[380px] shadow-2xl animate-float stagger-1 border-white/20">
 <div class="flex items-center gap-3 mb-3">
-<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-accent-orange to-amber-400 p-[1px]">
-<div class="w-full h-full rounded-full bg-bg-dark flex items-center justify-center text-[10px] font-bold">MS</div>
+<div class="w-[62px] h-[62px] rounded-full bg-gradient-to-tr from-accent-orange to-amber-400 p-[1px]">
+<div class="w-full h-full rounded-full bg-bg-dark flex items-center justify-center text-[17px] font-bold">MS</div>
 </div>
 <div>
-<p class="text-[10px] font-bold text-white leading-tight">Marta Sánchez</p>
-<p class="text-[9px] text-gray-400">Diseño UX/UI</p>
+<p class="text-[17px] font-bold text-white leading-tight">Marta Sánchez</p>
+<p class="text-[15px] text-gray-400">Diseño UX/UI</p>
 </div>
-<div class="ml-auto w-2 h-2 rounded-full bg-green-500 animate-ping-slow"></div>
+<div class="ml-auto w-[13px] h-[13px] rounded-full bg-green-500 animate-ping-slow"></div>
 </div>
 <div class="flex items-center justify-between">
-<span class="text-[9px] font-bold text-green-400 bg-green-400/10 px-2 py-0.5 rounded border border-green-500/20">Check-in Ok</span>
-<span class="text-[9px] text-gray-500 font-medium">09:00 AM</span>
+<span class="text-[15px] font-bold text-green-400 bg-green-400/10 px-[13px] py-[3px] rounded border border-green-500/20">Check-in Ok</span>
+<span class="text-[15px] text-gray-500 font-medium">09:00 AM</span>
 </div>
 </div>
-<!-- Floating Widget 2: Geolocalización Widget -->
-<div class="absolute -bottom-12 -left-12 md:-left-20 glass-card rounded-3xl p-5 w-60 shadow-2xl animate-float stagger-4 border-white/20">
+<!-- Floating Widget 2: Geolocalización Widget (más grande, misma posición) -->
+<div class="absolute -bottom-12 -left-12 md:-left-20 glass-card rounded-3xl p-[34px] w-[405px] shadow-2xl animate-float stagger-4 border-white/20">
 <div class="flex items-center gap-3 mb-3">
-<div class="w-10 h-10 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/20">
-<span class="material-symbols-outlined text-lg">location_on</span>
+<div class="w-[68px] h-[68px] rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-400 border border-blue-500/20">
+<span class="material-symbols-outlined text-[30px]">location_on</span>
 </div>
 <div>
-<p class="text-[11px] font-bold text-white">Geolocalización</p>
-<p class="text-[9px] text-gray-500">Rastreo en tiempo real</p>
+<p class="text-[18px] font-bold text-white">Geolocalización</p>
+<p class="text-[15px] text-gray-500">Rastreo en tiempo real</p>
 </div>
 </div>
 <div class="space-y-2">
-<div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-[10px] w-full bg-white/10 rounded-full overflow-hidden">
 <div class="h-full w-[88%] bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></div>
 </div>
-<div class="flex justify-between text-[9px] font-bold uppercase tracking-wider">
+<div class="flex justify-between text-[15px] font-bold uppercase tracking-wider">
 <span class="text-blue-400">Rango: 15m</span>
 <span class="text-gray-400">Alta Precisión</span>
 </div>
