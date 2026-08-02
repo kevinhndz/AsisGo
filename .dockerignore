@@ -1,0 +1,24 @@
+
+# El entorno virtual de Python — NUNCA va adentro del contenedor.
+# Docker instala las dependencias desde requirements.txt en Linux directamente.
+venv/
+env/
+ENV/
+
+# Bytecode compilado de Windows — incompatible con Linux dentro del contenedor.
+__pycache__/
+*.pyc
+*.pyo
+
+
+.env
+
+
+.git/
+.gitignore
+*.md
+.DS_Store
+Thumbs.db
+
+
+frontend/
