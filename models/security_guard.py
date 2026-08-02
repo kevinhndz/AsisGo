@@ -57,7 +57,8 @@ class CorregirAsistencia(BaseModel):
     fecha:         date
     presente:      bool
 
-
+class AjustarFaltas(BaseModel):
+    faltas: int = Field(ge=0)
 
 class NotasEstudiante(BaseModel):
     notas: str = Field(max_length=500)

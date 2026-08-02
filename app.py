@@ -16,7 +16,7 @@ import os
 from models.almacen import miClaseBase, abrir_puerta_bd, motor
 from models.security_guard import (
     RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante, MarcarAsistencia,
-    ConfigurarUbicacionAula, CorregirAsistencia, NotasEstudiante  #
+    ConfigurarUbicacionAula, CorregirAsistencia, NotasEstudiante  , AjustarFaltas
 )
 
 from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema, encriptar_contrasena, verificar_contrasena
@@ -256,6 +256,86 @@ def crear_materia(
     base_datos.commit()
 
     return {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
+
+
+@app.delete("/materia/{id_materia}")
+def eliminar_materia(
+    id_materia: int,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+    if materia is None:
+        raise HTTPException(status_code=404, detail="Esa materia no existe o no te pertenece.")
+
+    estudiantes = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_materia == id_materia
+    ).all()
+    for est in estudiantes:
+        base_datos.query(TablaAsistencia).filter(
+            TablaAsistencia.id_estudiante == est.id_estudiante
+        ).delete()
+    base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_materia == id_materia
+    ).delete()
+    base_datos.query(TablaGrabaciones).filter(
+        TablaGrabaciones.id_materia == id_materia
+    ).delete()
+    base_datos.delete(materia)
+    base_datos.commit()
+    return {"mensaje": "Clase eliminada correctamente."}
+
+
+
+@app.put("/estudiante/{id_estudiante}/ajustar_faltas")
+def ajustar_faltas_estudiante(
+    id_estudiante: int,
+    json_enviado: AjustarFaltas,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    estudiante = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_estudiante == id_estudiante
+    ).first()
+    if not estudiante:
+        raise HTTPException(status_code=404, detail="Estudiante no encontrado.")
+
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == estudiante.id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+    if not materia:
+        raise HTTPException(status_code=403, detail="No tienes permiso.")
+
+    # Calculamos las fechas del periodo hasta hoy
+    fechas = calcular_fechas_del_periodo(materia)
+    hoy = date.today()
+    fechas_hasta_hoy = [f for f in fechas if f <= hoy]
+
+   
+    base_datos.query(TablaAsistencia).filter(
+        TablaAsistencia.id_estudiante == id_estudiante,
+        TablaAsistencia.id_materia == estudiante.id_materia
+    ).delete()
+
+    faltas_restantes = json_enviado.faltas
+    for f in reversed(fechas_hasta_hoy):
+        presente = faltas_restantes <= 0
+        if not presente:
+            faltas_restantes -= 1
+        base_datos.add(TablaAsistencia(
+            id_estudiante=id_estudiante,
+            id_materia=estudiante.id_materia,
+            fecha=f,
+            presente=presente,
+            editado_manualmente=True
+        ))
+
+    base_datos.commit()
+    return {"mensaje": "Faltas ajustadas correctamente."}
 
 
 # MODIFICADO: agrega "horario_texto" legible para el frontend (ya no existe m.horario)
