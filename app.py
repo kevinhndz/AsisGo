@@ -1,8 +1,10 @@
 from fastapi import FastAPI, HTTPException, status, Depends, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response  #
 from fastapi.staticfiles import StaticFiles
+from fastapi.exceptions import RequestValidationError  
+from fastapi.responses import JSONResponse             
 from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 from math import radians, sin, cos, sqrt, atan2
@@ -35,7 +37,7 @@ from models.security_guard import (
     ConfigurarUbicacionAula
 )
 
-# IMPORTANTE: Asegúrate de que estas tres funciones existan en archivo_seguridad.py
+
 from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema, encriptar_contrasena, verificar_contrasena
 from models.tablas import (
     TablaUsuarios, TablaClientes, TablaMaterias, TablaEstudiantes,
@@ -45,6 +47,37 @@ from models.sesion_qr import generar_nuevo_token, token_es_valido, SESIONES_QR_A
 from models.correo import enviar_correo_grabacion
 
 app = FastAPI()
+
+@app.exception_handler(RequestValidationError)
+async def validacion_en_espanol(request: Request, exc: RequestValidationError):
+    mensajes = {
+        "string_too_short": "El campo es demasiado corto.",
+        "string_too_long":  "El campo es demasiado largo.",
+        "value_error":      "Valor inválido.",
+        "missing":          "Este campo es obligatorio.",
+    }
+    errores = exc.errors()
+    if errores:
+        tipo  = errores[0].get("type", "")
+        campo = errores[0].get("loc", ["campo"])[-1]
+        # Mensajes específicos para los campos más comunes
+        if campo == "contrasena" and "too_short" in tipo:
+            detalle = "La contraseña debe tener al menos 8 caracteres."
+        elif campo == "contrasena" and "too_long" in tipo:
+            detalle = "La contraseña no puede superar 72 caracteres."
+        elif campo == "usuario" and "too_short" in tipo:
+            detalle = "El usuario debe tener al menos 4 caracteres."
+        elif campo == "usuario" and "too_long" in tipo:
+            detalle = "El usuario no puede superar 50 caracteres."
+        else:
+            detalle = mensajes.get(tipo, f"Error en el campo '{campo}': dato inválido.")
+    else:
+        detalle = "Datos inválidos. Revisa el formulario."
+
+    return JSONResponse(
+        status_code=422,
+        content={"detail": detalle}
+    )
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"))
@@ -88,11 +121,20 @@ def mostrar_signup(request: Request):
     return templates.TemplateResponse(request, 'signup.html')
 
 @app.get('/interface', response_class=HTMLResponse)
-def mostrar_interface(request: Request):
+def mostrar_interface(request: Request, response: Response):
+    # BUG #1: Sin estos headers el navegador cachea la página y al presionar
+    # "atrás" la muestra sin consultar al servidor, saltándose el guard de sesión.
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return templates.TemplateResponse(request, 'interface.html')
 
 @app.get('/workspace', response_class=HTMLResponse)
-def mostrar_workspace(request: Request):
+def mostrar_workspace(request: Request, response: Response):
+    # BUG #1: Mismo tratamiento anti-caché para /workspace.
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return templates.TemplateResponse(request, 'workspace.html')
 
 
@@ -362,7 +404,11 @@ def generar_qr_token(
 
 
 @app.get("/qr_pantalla/{id_materia}", response_class=HTMLResponse)
-def qr_pantalla(id_materia: int, request: Request):
+def qr_pantalla(id_materia: int, request: Request, response: Response):
+    # BUG #1: Anti-caché también en la pantalla QR.
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
     return templates.TemplateResponse(
         request,
         "qr_pantalla.html",
