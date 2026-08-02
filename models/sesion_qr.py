@@ -10,11 +10,11 @@ from datetime import datetime, timedelta
 SESIONES_QR_ACTIVAS = {}
 
 # Cada cuanto se genera un QR nuevo (lo que ve el profesor en pantalla)
-INTERVALO_RENOVACION_SEGUNDOS = 15
+INTERVALO_RENOVACION_SEGUNDOS = 20
 
 # Cuanto tiempo sigue siendo valido un token YA ESCANEADO despues de generado.
 # Debe ser mayor al intervalo de renovacion para dar margen real de uso.
-DURACION_TOKEN_SEGUNDOS = 45
+DURACION_TOKEN_SEGUNDOS = 60
 
 
 def generar_nuevo_token(id_materia: int) -> dict:

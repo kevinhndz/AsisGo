@@ -496,6 +496,12 @@ def marcar_asistencia(
             )
             dentro_del_rango = distancia <= 50
 
+  
+    if estudiante.modalidad == "presencial":
+        esta_presente = dentro_del_rango is True
+    else:
+        esta_presente = True
+
     hoy = date.today()
     ya_marco = base_datos.query(TablaAsistencia).filter(
         TablaAsistencia.id_estudiante == estudiante.id_estudiante,
@@ -512,14 +518,19 @@ def marcar_asistencia(
         id_estudiante=estudiante.id_estudiante,
         id_materia=id_materia,
         fecha=hoy,
-        presente=True,
+        presente=esta_presente,
         modalidad_usada=estudiante.modalidad,
         dentro_del_rango=dentro_del_rango
     )
     base_datos.add(nueva_asistencia)
     base_datos.commit()
 
-    return {"mensaje": f"Asistencia registrada, {estudiante.nombre}!"}
+    if estudiante.modalidad == "presencial" and not esta_presente:
+        mensaje_final = f"Registro recibido, {estudiante.nombre}, pero estás fuera del rango del aula. No se contará como presente."
+    else:
+        mensaje_final = f"Asistencia registrada, {estudiante.nombre}!"
+
+    return {"mensaje": mensaje_final}
 
 
 @app.get("/materia/{id_materia}/asistencia_hoy")
