@@ -23,6 +23,7 @@
         body { font-family: 'Geist', sans-serif; }
         .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
         input:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #1c1b1b inset !important; -webkit-text-fill-color:#e5e2e1 !important; }
+        select option { background:#201f1f; color:#e5e2e1; }
     </style>
 </head>
 <body class="bg-background text-on-background min-h-screen">
@@ -39,7 +40,6 @@
         <a href="/workspace" class="flex items-center gap-1.5 text-primary font-bold hover:underline underline-offset-4">
             <span class="material-symbols-outlined text-base">grid_view</span> Mis clases
         </a>
-        <!-- BUG #1: onclick llama a cerrarSesion() para limpiar token antes de redirigir -->
         <a href="#" onclick="cerrarSesion()" class="flex items-center gap-1.5 text-on-surface-variant hover:text-on-surface transition-colors cursor-pointer">
             <span class="material-symbols-outlined text-base">logout</span> Salir
         </a>
@@ -64,6 +64,7 @@
 
         <form id="formulario-materias" class="flex flex-col gap-5">
 
+            <!-- Nombre -->
             <div class="group">
                 <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Nombre de la Clase</label>
                 <div class="relative">
@@ -73,6 +74,7 @@
                 </div>
             </div>
 
+            <!-- Sección -->
             <div class="group">
                 <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Sección</label>
                 <div class="relative">
@@ -82,11 +84,61 @@
                 </div>
             </div>
 
+            <!-- Día de la semana -->
             <div class="group">
-                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Horario</label>
+                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Día de la Semana</label>
                 <div class="relative">
-                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">schedule</span>
-                    <input id="horario" type="text" placeholder="Ej. Lunes 08:00–10:00" required
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">calendar_today</span>
+                    <select id="dia_semana" required
+                        class="w-full bg-surface-container-low rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all appearance-none cursor-pointer">
+                        <option value="" disabled selected>Selecciona un día</option>
+                        <option value="0">Lunes</option>
+                        <option value="1">Martes</option>
+                        <option value="2">Miércoles</option>
+                        <option value="3">Jueves</option>
+                        <option value="4">Viernes</option>
+                        <option value="5">Sábado</option>
+                        <option value="6">Domingo</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Hora inicio / Hora fin -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="group">
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Hora Inicio</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">schedule</span>
+                        <input id="hora_inicio" type="time" required
+                            class="w-full bg-surface-container-low rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all [color-scheme:dark]"/>
+                    </div>
+                </div>
+                <div class="group">
+                    <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Hora Fin</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">schedule</span>
+                        <input id="hora_fin" type="time" required
+                            class="w-full bg-surface-container-low rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all [color-scheme:dark]"/>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fecha de inicio del periodo -->
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Fecha de Inicio del Periodo</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">event</span>
+                    <input id="fecha_inicio_periodo" type="date" required
+                        class="w-full bg-surface-container-low rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all [color-scheme:dark]"/>
+                </div>
+            </div>
+
+            <!-- Semanas de duración -->
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1.5 tracking-widest uppercase group-focus-within:text-primary transition-colors">Semanas de Duración</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-outline text-xl group-focus-within:text-primary transition-colors">date_range</span>
+                    <input id="semanas_duracion" type="number" min="1" max="52" value="11" required
                         class="w-full bg-surface-container-low rounded-xl py-3.5 pl-11 pr-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-outline/50"/>
                 </div>
             </div>
@@ -111,16 +163,12 @@
 </main>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// BUG #1 — Guard de sesión (igual que workspace.html)
-// ══════════════════════════════════════════════════════════════
 (function verificarSesionActiva() {
     if (!sessionStorage.getItem('miTokenJWT')) {
         window.location.replace('/iniciar_sesion?sesion=expirada');
     }
 })();
 
-// BUG #1 — Logout limpio
 function cerrarSesion() {
     sessionStorage.removeItem('miTokenJWT');
     window.location.replace('/iniciar_sesion?sesion=expirada');
@@ -132,18 +180,26 @@ document.getElementById("formulario-materias").addEventListener("submit", async 
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-lg">progress_activity</span> Registrando...';
 
-    const nombre  = document.getElementById("nombre").value;
-    const seccion = document.getElementById("seccion").value;
-    const horario = document.getElementById("horario").value;
-    const token   = sessionStorage.getItem("miTokenJWT");
+    const token = sessionStorage.getItem("miTokenJWT");
 
-    const resp = await fetch("/crear_materia", {
+    // Hora: el input type="time" devuelve "HH:MM", exactamente lo que espera el backend
+    const payload = {
+        nombre:               document.getElementById("nombre").value.trim(),
+        seccion:              document.getElementById("seccion").value.trim(),
+        dia_semana:           parseInt(document.getElementById("dia_semana").value),
+        hora_inicio:          document.getElementById("hora_inicio").value,
+        hora_fin:             document.getElementById("hora_fin").value,
+        fecha_inicio_periodo: document.getElementById("fecha_inicio_periodo").value,
+        semanas_duracion:     parseInt(document.getElementById("semanas_duracion").value)
+    };
+
+    const resp  = await fetch("/crear_materia", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
-        body: JSON.stringify({ nombre, seccion, horario })
+        body: JSON.stringify(payload)
     });
     const datos = await resp.json();
-    const el = document.getElementById("creado");
+    const el    = document.getElementById("creado");
 
     if (resp.ok) {
         el.innerText = "✓ " + datos.mensaje;

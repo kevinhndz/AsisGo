@@ -1,4 +1,3 @@
-
 from sqlalchemy import (
     Integer, String, Column, ForeignKey,
     Boolean, Date, DateTime
@@ -34,9 +33,16 @@ class TablaMaterias(miClaseBase):
     id_materia = Column(Integer, primary_key=True)
     nombre     = Column(String(50), nullable=False)
     seccion    = Column(String(20), unique=True, nullable=False)
-    horario    = Column(String(25), nullable=False)
-    lat_aula   = Column(String(30), nullable=True)   # Guardado como String para evitar
-    lng_aula   = Column(String(30), nullable=True)   
+
+   
+    dia_semana            = Column(Integer, nullable=True)
+    hora_inicio           = Column(String(5), nullable=True)   # "08:00"
+    hora_fin              = Column(String(5), nullable=True)   # "10:00"
+    fecha_inicio_periodo  = Column(Date, nullable=True)
+    semanas_duracion      = Column(Integer, nullable=True, default=11)
+
+    lat_aula   = Column(String(30), nullable=True)
+    lng_aula   = Column(String(30), nullable=True)
     id_usuario = Column(Integer, ForeignKey("usuarios.id_usuario"), nullable=False)
 
 
@@ -52,6 +58,9 @@ class TablaEstudiantes(miClaseBase):
     modalidad     = Column(String(15), nullable=False)   # 'presencial' | 'virtual'
     id_materia    = Column(Integer, ForeignKey("materias.id_materia"), nullable=False)
 
+ 
+    notas         = Column(String(500), nullable=True)
+
 
 class TablaAsistencia(miClaseBase):
     __tablename__ = "asistencia"
@@ -62,8 +71,10 @@ class TablaAsistencia(miClaseBase):
     fecha            = Column(Date, nullable=False)
     presente         = Column(Boolean, default=False)
     modalidad_usada  = Column(String(15), nullable=True)
-    
     dentro_del_rango = Column(Boolean, nullable=True, default=None)
+
+   
+    editado_manualmente = Column(Boolean, default=False)
 
 
 

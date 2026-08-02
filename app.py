@@ -1,16 +1,34 @@
 from fastapi import FastAPI, HTTPException, status, Depends, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, Response  #
+from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
-from fastapi.exceptions import RequestValidationError  
-from fastapi.responses import JSONResponse             
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 from math import radians, sin, cos, sqrt, atan2
 from pydantic import BaseModel
 import socket
 import os
+
+
+from models.almacen import miClaseBase, abrir_puerta_bd, motor
+from models.security_guard import (
+    RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante, MarcarAsistencia,
+    ConfigurarUbicacionAula, CorregirAsistencia, NotasEstudiante  #
+)
+
+from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema, encriptar_contrasena, verificar_contrasena
+from models.tablas import (
+    TablaUsuarios, TablaClientes, TablaMaterias, TablaEstudiantes,
+    TablaAsistencia, TablaGrabaciones
+)
+from models.sesion_qr import generar_nuevo_token, token_es_valido, SESIONES_QR_ACTIVAS
+from models.correo import enviar_correo_grabacion
+
+# NUEVO: para el reporte en PDF
+from fpdf import FPDF
 
 def obtener_ip_local() -> str:
     try:
@@ -31,20 +49,10 @@ def obtener_base_url() -> str:
 BASE_URL = obtener_base_url()
 CLASES_EN_CURSO: dict = {}
 
-from models.almacen import miClaseBase, abrir_puerta_bd, motor
-from models.security_guard import (
-    RevisarDatos, CrearCliente, CrearMateria, CrearEstudiante, MarcarAsistencia,
-    ConfigurarUbicacionAula
-)
+
+NOMBRES_DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 
 
-from models.archivo_seguridad import emitir_credencial, revisar_credencial_en_sistema, encriptar_contrasena, verificar_contrasena
-from models.tablas import (
-    TablaUsuarios, TablaClientes, TablaMaterias, TablaEstudiantes,
-    TablaAsistencia, TablaGrabaciones
-)
-from models.sesion_qr import generar_nuevo_token, token_es_valido, SESIONES_QR_ACTIVAS
-from models.correo import enviar_correo_grabacion
 
 app = FastAPI()
 
@@ -60,7 +68,6 @@ async def validacion_en_espanol(request: Request, exc: RequestValidationError):
     if errores:
         tipo  = errores[0].get("type", "")
         campo = errores[0].get("loc", ["campo"])[-1]
-        # Mensajes específicos para los campos más comunes
         if campo == "contrasena" and "too_short" in tipo:
             detalle = "La contraseña debe tener al menos 8 caracteres."
         elif campo == "contrasena" and "too_long" in tipo:
@@ -82,12 +89,9 @@ async def validacion_en_espanol(request: Request, exc: RequestValidationError):
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"))
 
-# ============================================================
-# CONFIGURACION DE SEGURIDAD CORS PARA PRODUCCION
-# ============================================================
 origenes_permitidos = [
-    "https:// cualquera.com", # lo reemplzao despues
-    "http://localhost:5500",           # Para pruebas locales
+    "https:// cualquera.com",
+    "http://localhost:5500",
     "http://127.0.0.1:5500",
     "http://localhost:8000",
     "http://127.0.0.1:8000"
@@ -122,8 +126,6 @@ def mostrar_signup(request: Request):
 
 @app.get('/interface', response_class=HTMLResponse)
 def mostrar_interface(request: Request, response: Response):
-    # BUG #1: Sin estos headers el navegador cachea la página y al presionar
-    # "atrás" la muestra sin consultar al servidor, saltándose el guard de sesión.
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
@@ -131,7 +133,6 @@ def mostrar_interface(request: Request, response: Response):
 
 @app.get('/workspace', response_class=HTMLResponse)
 def mostrar_workspace(request: Request, response: Response):
-    # BUG #1: Mismo tratamiento anti-caché para /workspace.
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
@@ -153,7 +154,6 @@ def login(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Usuario no encontrado"
         )
-
 
     if not verificar_contrasena(json_recibido.contrasena, user_que_vino.contrasena):
         raise HTTPException(
@@ -190,7 +190,6 @@ def crear_cliente(
             detail=f"Usuario {json_enviado.usuario} ya esta siendo utilizado."
         )
 
-   
     contrasena_segura = encriptar_contrasena(json_enviado.contrasena)
 
     nuevo_usuario = TablaUsuarios(
@@ -226,6 +225,7 @@ def crear_cliente(
 # RUTAS REST — CRUD de materias
 # ============================================================
 
+# MODIFICADO: ahora recibe horario estructurado en vez de texto libre
 @app.post("/crear_materia", status_code=status.HTTP_200_OK)
 def crear_materia(
     json_enviado: CrearMateria,
@@ -245,7 +245,11 @@ def crear_materia(
     nueva_clase = TablaMaterias(
         nombre=json_enviado.nombre,
         seccion=json_enviado.seccion,
-        horario=json_enviado.horario,
+        dia_semana=json_enviado.dia_semana,
+        hora_inicio=json_enviado.hora_inicio,
+        hora_fin=json_enviado.hora_fin,
+        fecha_inicio_periodo=json_enviado.fecha_inicio_periodo,
+        semanas_duracion=json_enviado.semanas_duracion,
         id_usuario=id_del_profesor
     )
     base_datos.add(nueva_clase)
@@ -254,6 +258,7 @@ def crear_materia(
     return {"mensaje": f"{json_enviado.nombre} ha sido creada con exito!"}
 
 
+# MODIFICADO: agrega "horario_texto" legible para el frontend (ya no existe m.horario)
 @app.get("/mis_materias")
 def obtener_mis_materias(
     id_del_profesor: int = Depends(revisar_credencial_en_sistema),
@@ -262,7 +267,27 @@ def obtener_mis_materias(
     materias_del_profe = base_datos.query(TablaMaterias).filter(
         TablaMaterias.id_usuario == id_del_profesor
     ).all()
-    return materias_del_profe
+
+    resultado = []
+    for m in materias_del_profe:
+        if m.dia_semana is not None:
+            dia_texto = NOMBRES_DIAS[m.dia_semana]
+            horario_texto = f"{dia_texto} {m.hora_inicio}-{m.hora_fin}"
+        else:
+            horario_texto = "Horario sin configurar"
+
+        resultado.append({
+            "id_materia": m.id_materia,
+            "nombre": m.nombre,
+            "seccion": m.seccion,
+            "horario_texto": horario_texto,
+            "dia_semana": m.dia_semana,
+            "hora_inicio": m.hora_inicio,
+            "hora_fin": m.hora_fin,
+            "fecha_inicio_periodo": m.fecha_inicio_periodo.isoformat() if m.fecha_inicio_periodo else None,
+            "semanas_duracion": m.semanas_duracion
+        })
+    return resultado
 
 
 # ============================================================
@@ -405,7 +430,6 @@ def generar_qr_token(
 
 @app.get("/qr_pantalla/{id_materia}", response_class=HTMLResponse)
 def qr_pantalla(id_materia: int, request: Request, response: Response):
-    # BUG #1: Anti-caché también en la pantalla QR.
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"
@@ -459,6 +483,20 @@ def distancia_metros(lat1, lng1, lat2, lng2) -> float:
     return R * 2 * atan2(sqrt(a), sqrt(1 - a))
 
 
+# NUEVO: calcula todas las fechas de clase del periodo, una por semana,
+# empezando en fecha_inicio_periodo y cayendo siempre en dia_semana.
+def calcular_fechas_del_periodo(materia: TablaMaterias) -> list:
+    if materia.dia_semana is None or materia.fecha_inicio_periodo is None:
+        return []
+
+    inicio = materia.fecha_inicio_periodo
+    diferencia_dias = (materia.dia_semana - inicio.weekday()) % 7
+    primera_fecha = inicio + timedelta(days=diferencia_dias)
+
+    semanas = materia.semanas_duracion or 11
+    return [primera_fecha + timedelta(weeks=i) for i in range(semanas)]
+
+
 @app.post("/marcar_asistencia")
 def marcar_asistencia(
     id_materia: int,
@@ -496,7 +534,6 @@ def marcar_asistencia(
             )
             dentro_del_rango = distancia <= 50
 
-  
     if estudiante.modalidad == "presencial":
         esta_presente = dentro_del_rango is True
     else:
@@ -583,6 +620,7 @@ def obtener_asistencia_hoy(
 # RUTAS REST — CRUD completo de estudiantes
 # ============================================================
 
+
 @app.get("/materia/{id_materia}/estudiantes")
 def listar_estudiantes_con_faltas(
     id_materia: int,
@@ -618,10 +656,153 @@ def listar_estudiantes_con_faltas(
             "telefono": est.telefono,
             "numero_cuenta": est.numero_cuenta,
             "modalidad": est.modalidad,
-            "faltas": total_faltas
+            "faltas": total_faltas,
+            "notas": est.notas or ""  # NUEVO
         })
 
     return resultado
+
+
+# NUEVO: reporte completo con fechas reales del periodo (reemplaza "ultimasCuatroSemanas" del frontend)
+@app.get("/materia/{id_materia}/reporte_asistencia")
+def reporte_asistencia(
+    id_materia: int,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    fechas_periodo = calcular_fechas_del_periodo(materia)
+    hoy = date.today()
+    fechas_hasta_hoy = [f for f in fechas_periodo if f <= hoy]
+
+    estudiantes = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_materia == id_materia
+    ).all()
+
+    todas_asistencias = base_datos.query(TablaAsistencia).filter(
+        TablaAsistencia.id_materia == id_materia
+    ).all()
+
+    mapa_asistencia = {
+        (a.id_estudiante, a.fecha): a.presente for a in todas_asistencias
+    }
+
+    resultado = []
+    for est in estudiantes:
+        fila_fechas = []
+        total_faltas = 0
+        for f in fechas_hasta_hoy:
+            presente = mapa_asistencia.get((est.id_estudiante, f))
+            if presente is None:
+                presente = False
+            if not presente:
+                total_faltas += 1
+            fila_fechas.append({"fecha": f.isoformat(), "presente": presente})
+
+        resultado.append({
+            "id_estudiante": est.id_estudiante,
+            "nombre": est.nombre,
+            "correo": est.correo,
+            "numero_cuenta": est.numero_cuenta,
+            "modalidad": est.modalidad,
+            "notas": est.notas or "",
+            "faltas": total_faltas,
+            "fechas": fila_fechas
+        })
+
+    return {
+        "fechas_columnas": [f.isoformat() for f in fechas_hasta_hoy],
+        "estudiantes": resultado
+    }
+
+
+# NUEVO: el profesor puede corregir manualmente una asistencia (click en la tabla)
+@app.put("/materia/{id_materia}/corregir_asistencia")
+def corregir_asistencia(
+    id_materia: int,
+    json_enviado: CorregirAsistencia,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    registro = base_datos.query(TablaAsistencia).filter(
+        TablaAsistencia.id_estudiante == json_enviado.id_estudiante,
+        TablaAsistencia.id_materia == id_materia,
+        TablaAsistencia.fecha == json_enviado.fecha
+    ).first()
+
+    if registro is None:
+        registro = TablaAsistencia(
+            id_estudiante=json_enviado.id_estudiante,
+            id_materia=id_materia,
+            fecha=json_enviado.fecha,
+            presente=json_enviado.presente,
+            modalidad_usada=None,
+            dentro_del_rango=None,
+            editado_manualmente=True
+        )
+        base_datos.add(registro)
+    else:
+        registro.presente = json_enviado.presente
+        registro.editado_manualmente = True
+
+    base_datos.commit()
+    return {"mensaje": "Asistencia corregida correctamente."}
+
+
+# NUEVO: guardar notas privadas del profesor sobre un estudiante
+@app.put("/estudiante/{id_estudiante}/notas")
+def actualizar_notas_estudiante(
+    id_estudiante: int,
+    json_enviado: NotasEstudiante,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    estudiante = base_datos.query(TablaEstudiantes).filter(
+        TablaEstudiantes.id_estudiante == id_estudiante
+    ).first()
+
+    if estudiante is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Ese estudiante no existe."
+        )
+
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == estudiante.id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ese estudiante no pertenece a una de tus materias."
+        )
+
+    estudiante.notas = json_enviado.notas
+    base_datos.commit()
+
+    return {"mensaje": "Nota guardada correctamente."}
 
 
 @app.post("/materia/{id_materia}/agregar_estudiante", status_code=status.HTTP_200_OK)
@@ -747,6 +928,66 @@ def eliminar_estudiante(
     base_datos.commit()
 
     return {"mensaje": "Estudiante eliminado del curso."}
+
+
+# NUEVO: genera y descarga el PDF de las 11 semanas
+@app.get("/materia/{id_materia}/reporte_pdf")
+def reporte_pdf(
+    id_materia: int,
+    id_del_profesor: int = Depends(revisar_credencial_en_sistema),
+    base_datos: Session = Depends(abrir_puerta_bd)
+):
+    materia = base_datos.query(TablaMaterias).filter(
+        TablaMaterias.id_materia == id_materia,
+        TablaMaterias.id_usuario == id_del_profesor
+    ).first()
+
+    if materia is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Esa materia no existe o no te pertenece."
+        )
+
+    datos = reporte_asistencia(id_materia, id_del_profesor, base_datos)
+
+    pdf = FPDF(orientation="L", unit="mm", format="A4")
+    pdf.add_page()
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 10, f"Reporte de Asistencia - {materia.nombre} ({materia.seccion})", ln=True)
+    pdf.set_font("Helvetica", "", 9)
+    dia_texto = NOMBRES_DIAS[materia.dia_semana] if materia.dia_semana is not None else ""
+    pdf.cell(0, 6, f"Horario: {dia_texto} {materia.hora_inicio}-{materia.hora_fin}", ln=True)
+    pdf.ln(4)
+
+    fechas = datos["fechas_columnas"]
+    ancho_nombre = 55
+    ancho_fecha = max(15, (270 - ancho_nombre - 20) / max(len(fechas), 1))
+
+    pdf.set_font("Helvetica", "B", 8)
+    pdf.cell(ancho_nombre, 8, "Estudiante", border=1)
+    for f in fechas:
+        pdf.cell(ancho_fecha, 8, f, border=1, align="C")
+    pdf.cell(20, 8, "Faltas", border=1, align="C")
+    pdf.ln()
+
+    pdf.set_font("Helvetica", "", 8)
+    for est in datos["estudiantes"]:
+        pdf.cell(ancho_nombre, 7, est["nombre"][:32], border=1)
+        for dia in est["fechas"]:
+            marca = "P" if dia["presente"] else "F"
+            pdf.cell(ancho_fecha, 7, marca, border=1, align="C")
+        pdf.cell(20, 7, str(est["faltas"]), border=1, align="C")
+        pdf.ln()
+
+    pdf_bytes = bytes(pdf.output())
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="asistencia_{materia.seccion}.pdf"'
+        }
+    )
 
 
 class UrlGrabacion(BaseModel):

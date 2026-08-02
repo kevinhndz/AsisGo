@@ -295,7 +295,7 @@ async function cargarClases() {
                 </div>
                 <div>
                     <p class="font-bold text-on-background">${m.nombre}</p>
-                    <p class="text-xs text-on-surface-variant mt-0.5">Sección ${m.seccion} · ${m.horario}</p>
+                    <p class="text-xs text-on-surface-variant mt-0.5">Sección ${m.seccion} · ${m.horario_texto}</p>
                 </div>
             </div>
             <button onclick="irAClase(${m.id_materia}, '${m.nombre}', '${m.seccion}')"
@@ -379,16 +379,16 @@ async function cargarAsistenciaVivo() {
     cont.innerHTML = html;
 }
 
-// ── TABLA ESTUDIANTES ESTÁTICA ───────────────────────────────
+// ── TABLA ESTUDIANTES (NUEVO: fechas reales del periodo, faltas editables, notas, PDF) ──
 async function cargarEstudiantes() {
     const cont = document.getElementById("contenedor-tabla");
     cont.innerHTML = `<p class="text-sm text-on-surface-variant">Cargando...</p>`;
 
-    const resp = await fetch(`/materia/${idMateriaActual}/estudiantes`, { headers:{"Authorization":"Bearer "+tkn()} });
-    const estudiantes = await resp.json();
+    const resp = await fetch(`/materia/${idMateriaActual}/reporte_asistencia`, { headers:{"Authorization":"Bearer "+tkn()} });
+    const datos = await resp.json();
 
-    if (!resp.ok) { cont.innerHTML = `<p class="text-sm text-error">${estudiantes.detail}</p>`; return; }
-    if (estudiantes.length === 0) {
+    if (!resp.ok) { cont.innerHTML = `<p class="text-sm text-error">${datos.detail}</p>`; return; }
+    if (datos.estudiantes.length === 0) {
         cont.innerHTML = `<div class="text-center py-8 text-on-surface-variant text-sm">
             <span class="material-symbols-outlined text-4xl block mb-2 text-outline">group</span>
             Sin estudiantes inscritos aún.
@@ -396,20 +396,46 @@ async function cargarEstudiantes() {
         return;
     }
 
-    const semanas = ultimasCuatroSemanas();
+    const fechas = datos.fechas_columnas;
+    const fechasOrdenDesc = [...fechas].reverse();
+
     let html = `<table class="w-full"><thead class="t-head"><tr>
         <th>Nombre</th><th>Correo</th><th>Cuenta</th><th>Modalidad</th><th>Faltas</th>`;
-    semanas.forEach(s => { html += `<th class="text-center text-xs">${s.etiqueta}</th>`; });
-    html += `<th>Acciones</th></tr></thead><tbody class="t-body">`;
+    fechasOrdenDesc.forEach(f => {
+        const [anio, mes, dia] = f.split("-");
+        html += `<th class="text-center text-xs">${dia}/${mes}</th>`;
+    });
+    html += `<th>Notas</th><th>Acciones</th></tr></thead><tbody class="t-body">`;
 
-    estudiantes.forEach(e => {
+    datos.estudiantes.forEach(e => {
+        const mapaFechas = {};
+        e.fechas.forEach(f => { mapaFechas[f.fecha] = f.presente; });
+
         html += `<tr>
             <td class="font-medium">${e.nombre}</td>
             <td class="text-on-surface-variant">${e.correo}</td>
             <td class="text-on-surface-variant">${e.numero_cuenta}</td>
             <td class="capitalize">${e.modalidad}</td>
             <td class="text-center font-bold ${e.faltas > 0 ? 'text-error' : 'text-primary'}">${e.faltas}</td>`;
-        semanas.forEach(() => { html += `<td class="text-center text-on-surface-variant/30 text-sm">–</td>`; });
+
+        fechasOrdenDesc.forEach(f => {
+            const presente = mapaFechas[f];
+            const color = presente ? "text-primary" : "text-error";
+            const icono = presente ? "check_circle" : "cancel";
+            html += `<td class="text-center">
+                <button onclick="toggleAsistencia(${e.id_estudiante}, '${f}', ${!presente})"
+                    class="material-symbols-outlined text-lg ${color} hover:opacity-70 transition-opacity cursor-pointer"
+                    title="Click para corregir">${icono}</button>
+            </td>`;
+        });
+
+        html += `<td>
+            <input type="text" value="${(e.notas || '').replace(/"/g, '&quot;')}"
+                placeholder="Nota del profesor..."
+                onblur="guardarNota(${e.id_estudiante}, this.value)"
+                class="w-40 bg-surface-container-low rounded-lg py-1.5 px-2 text-xs text-on-surface outline-none focus:ring-1 focus:ring-primary/40"/>
+        </td>`;
+
         html += `<td>
             <div class="flex gap-1.5">
                 <button onclick='abrirModalEditar(${JSON.stringify(e)})'
@@ -425,16 +451,48 @@ async function cargarEstudiantes() {
     });
 
     html += "</tbody></table>";
-    cont.innerHTML = `<div class="overflow-x-auto rounded-xl border border-outline-variant/10">${html}</div>`;
+    cont.innerHTML = `<div class="overflow-x-auto rounded-xl border border-outline-variant/10">${html}</div>
+        <div class="mt-4 flex justify-end">
+            <button onclick="descargarPDF()"
+                class="flex items-center gap-2 bg-surface-container-high text-primary font-bold text-xs px-5 py-2.5 rounded-xl hover:bg-outline-variant/20 transition-all active:scale-95 border border-primary/20">
+                <span class="material-symbols-outlined text-base">picture_as_pdf</span> Descargar vista en PDF
+            </button>
+        </div>`;
 }
 
-function ultimasCuatroSemanas() {
-    const hoy = new Date();
-    return Array.from({length:4}, (_, i) => {
-        const d = new Date(hoy);
-        d.setDate(hoy.getDate() - i * 7);
-        return { etiqueta: i === 0 ? "Hoy " + d.toLocaleDateString("es-HN",{day:"2-digit",month:"2-digit"}) : d.toLocaleDateString("es-HN",{day:"2-digit",month:"2-digit"}) };
+// NUEVO: click en el icono de una fecha para marcar/corregir presente-ausente
+async function toggleAsistencia(idEstudiante, fecha, nuevoPresente) {
+    const resp = await fetch(`/materia/${idMateriaActual}/corregir_asistencia`, {
+        method: "PUT",
+        headers: hdrs(),
+        body: JSON.stringify({ id_estudiante: idEstudiante, fecha: fecha, presente: nuevoPresente })
     });
+    if (resp.ok) cargarEstudiantes();
+    else { const d = await resp.json(); alert(d.detail); }
+}
+
+// NUEVO: guardar nota al salir del campo de texto (blur)
+async function guardarNota(idEstudiante, texto) {
+    await fetch(`/estudiante/${idEstudiante}/notas`, {
+        method: "PUT",
+        headers: hdrs(),
+        body: JSON.stringify({ notas: texto })
+    });
+}
+
+// NUEVO: descargar el PDF del reporte
+function descargarPDF() {
+    fetch(`/materia/${idMateriaActual}/reporte_pdf`, { headers:{"Authorization":"Bearer "+tkn()} })
+        .then(resp => resp.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "asistencia.pdf";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        });
 }
 
 // ── CRUD ESTUDIANTES ─────────────────────────────────────────
