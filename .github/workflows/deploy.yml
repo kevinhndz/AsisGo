@@ -20,21 +20,9 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Entra a la carpeta de tu app en el servidor
             cd /app
-            
-            # Trae el código nuevo
             git pull origin main
-            
-            # Reconstruye la imagen de Docker
             docker build -t app-fastapi .
-            
-            # Detén y elimina el contenedor anterior si existe
             docker stop api-container || true
             docker rm api-container || true
-            
-            # Corre el nuevo contenedor
-            docker run -d -p 8000:8000 \
-              --name api-container \
-              --env-file .env \
-              app-fastapi
+            docker run -d -p 8000:8000 --name api-container --env-file .env app-fastapi
