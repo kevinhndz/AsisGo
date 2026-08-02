@@ -52,7 +52,7 @@
         <p id="estado-ubicacion" class="text-sm text-on-surface-variant">Solicitando ubicación...</p>
     </div>
 
-    <!-- Form card -->
+    <!-- Form card — se muestra solo cuando la ubicación ya se resolvió -->
     <div id="formulario-container" style="display:none;">
         <div class="bg-surface-container rounded-2xl p-6 shadow-xl relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <!-- Success state (hidden) -->
+    <!-- Success state -->
     <div id="estado-exito" style="display:none;" class="bg-surface-container rounded-2xl p-8 text-center shadow-xl border border-primary/20">
         <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <span class="material-symbols-outlined text-primary" style="font-size:36px; font-variation-settings:'FILL' 1;">check_circle</span>
@@ -95,54 +95,113 @@
 <script>
 const parametros = new URLSearchParams(window.location.search);
 const idMateria  = parametros.get("id_materia");
-const token      = parametros.get("token");
-let ubicacion    = { lat: null, lng: null };
+// FIX TOKEN EXPIRADO: no guardamos el token del QR inicial; lo pedimos de nuevo
+// justo antes de hacer el POST para que llegue fresco al backend.
+// El token del URL solo se usa si no podemos pedir uno nuevo (fallback).
+const tokenInicial = parametros.get("token");
+
+let ubicacion = { lat: null, lng: null };
+let ubicacionResuelta = false;
 
 function mostrarForm() {
     document.getElementById("formulario-container").style.display = "block";
     document.getElementById("pulse-anim").style.display = "none";
 }
 
-navigator.geolocation.getCurrentPosition(
-    function(pos) {
-        ubicacion.lat = pos.coords.latitude;
-        ubicacion.lng = pos.coords.longitude;
-        document.getElementById("estado-ubicacion").innerText = "Ubicación obtenida ✓";
-        document.getElementById("icono-ubicacion").textContent = "location_on";
-        mostrarForm();
-    },
-    function() {
-        document.getElementById("estado-ubicacion").innerText = "Sin ubicación — continúa si eres virtual.";
+// FIX UBICACIÓN EN HTTP: en localhost/HTTP el browser puede bloquear geolocation.
+// Usamos un timeout de 8s; si no responde, continuamos sin ubicación para no
+// bloquear a los alumnos virtuales ni a los que el browser no les pregunta.
+const timeoutUbicacion = setTimeout(() => {
+    if (!ubicacionResuelta) {
+        ubicacionResuelta = true;
+        document.getElementById("estado-ubicacion").innerText = "Sin ubicación — se registrará sin validación de rango.";
         document.getElementById("icono-ubicacion").textContent = "location_off";
         mostrarForm();
     }
-);
+}, 8000);
+
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        function(pos) {
+            if (ubicacionResuelta) return; // ya resolvió por timeout
+            clearTimeout(timeoutUbicacion);
+            ubicacionResuelta = true;
+            ubicacion.lat = pos.coords.latitude;
+            ubicacion.lng = pos.coords.longitude;
+            document.getElementById("estado-ubicacion").innerText = "Ubicación obtenida ✓";
+            document.getElementById("icono-ubicacion").textContent = "location_on";
+            mostrarForm();
+        },
+        function(err) {
+            if (ubicacionResuelta) return;
+            clearTimeout(timeoutUbicacion);
+            ubicacionResuelta = true;
+            // Error puede ser: permiso denegado (1), posición no disponible (2), timeout (3)
+            const msgs = {
+                1: "Permiso de ubicación denegado — se registrará sin validación de rango.",
+                2: "Ubicación no disponible en este momento.",
+                3: "Tiempo agotado obteniendo ubicación."
+            };
+            document.getElementById("estado-ubicacion").innerText = msgs[err.code] || "Sin ubicación.";
+            document.getElementById("icono-ubicacion").textContent = "location_off";
+            mostrarForm();
+        },
+        // FIX: timeout corto para que no bloquee; enableHighAccuracy para móviles
+        { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
+    );
+} else {
+    clearTimeout(timeoutUbicacion);
+    ubicacionResuelta = true;
+    document.getElementById("estado-ubicacion").innerText = "Geolocalización no soportada en este navegador.";
+    document.getElementById("icono-ubicacion").textContent = "location_off";
+    mostrarForm();
+}
 
 document.getElementById("formulario-asistencia").addEventListener("submit", async function(e) {
     e.preventDefault();
     const btn = document.getElementById("btn-marcar");
+    const msgEl = document.getElementById("mensaje");
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-lg">progress_activity</span> Registrando...';
 
-    const numero_cuenta = document.getElementById("numero_cuenta").value;
+    const numero_cuenta = document.getElementById("numero_cuenta").value.trim();
 
-    const respuesta = await fetch(`/marcar_asistencia?id_materia=${idMateria}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, numero_cuenta, lat: ubicacion.lat, lng: ubicacion.lng })
-    });
-    const datos = await respuesta.json();
+    // FIX TOKEN EXPIRADO: pedimos un token fresco justo antes de postear.
+    // Si falla (clase ya no activa), usamos el token del URL como fallback.
+    let tokenFinal = tokenInicial;
+    try {
+        const respToken = await fetch(`/materia/${idMateria}/generar_qr_token_publico`);
+        if (respToken.ok) {
+            const dt = await respToken.json();
+            tokenFinal = dt.token;
+        }
+    } catch (_) {
+        // red caída: usamos el token del QR escaneado
+    }
 
-    if (respuesta.ok) {
-        document.getElementById("formulario-container").style.display = "none";
-        document.getElementById("estado-ubicacion-card").style.display = "none";
-        const exito = document.getElementById("estado-exito");
-        exito.style.display = "block";
-        document.getElementById("mensaje-exito").innerText = datos.mensaje;
-    } else {
-        const msg = document.getElementById("mensaje");
-        msg.innerText = datos.detail;
-        msg.style.color = "#ffb4ab";
+    try {
+        const respuesta = await fetch(`/marcar_asistencia?id_materia=${idMateria}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: tokenFinal, numero_cuenta, lat: ubicacion.lat, lng: ubicacion.lng })
+        });
+        const datos = await respuesta.json();
+
+        if (respuesta.ok) {
+            document.getElementById("formulario-container").style.display = "none";
+            document.getElementById("estado-ubicacion-card").style.display = "none";
+            const exito = document.getElementById("estado-exito");
+            exito.style.display = "block";
+            document.getElementById("mensaje-exito").innerText = datos.mensaje;
+        } else {
+            msgEl.innerText = datos.detail;
+            msgEl.style.color = "#ffb4ab";
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-lg">how_to_reg</span> Marcar Asistencia';
+        }
+    } catch (_) {
+        msgEl.innerText = "Error de red. Verifica tu conexión e intenta de nuevo.";
+        msgEl.style.color = "#ffb4ab";
         btn.disabled = false;
         btn.innerHTML = '<span class="material-symbols-outlined text-lg">how_to_reg</span> Marcar Asistencia';
     }

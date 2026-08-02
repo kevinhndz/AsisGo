@@ -347,6 +347,8 @@ async function verificarClaseEnCurso() {
 }
 
 async function cargarAsistenciaVivo() {
+    // FIX: también refrescamos la tabla estática para que los íconos se actualicen
+    cargarEstudiantes();
     const resp  = await fetch(`/materia/${idMateriaActual}/asistencia_hoy`, { headers:{"Authorization":"Bearer "+tkn()} });
     if (!resp.ok) return;
     const datos = await resp.json();
@@ -460,15 +462,16 @@ async function cargarEstudiantes() {
         </div>`;
 }
 
-// NUEVO: click en el icono de una fecha para marcar/corregir presente-ausente
+// FIX: toggle de asistencia — siempre recarga la tabla (éxito o fallo) para
+// que el ícono nunca quede desincronizado con la BD.
 async function toggleAsistencia(idEstudiante, fecha, nuevoPresente) {
     const resp = await fetch(`/materia/${idMateriaActual}/corregir_asistencia`, {
         method: "PUT",
         headers: hdrs(),
         body: JSON.stringify({ id_estudiante: idEstudiante, fecha: fecha, presente: nuevoPresente })
     });
-    if (resp.ok) cargarEstudiantes();
-    else { const d = await resp.json(); alert(d.detail); }
+    // Recargamos siempre: si hubo error el ícono vuelve al valor correcto de la BD
+    cargarEstudiantes();
 }
 
 // NUEVO: guardar nota al salir del campo de texto (blur)
