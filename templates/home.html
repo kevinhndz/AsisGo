@@ -44,10 +44,17 @@ tailwind.config = {
 }
 </script>
 <style>
-  body { 
-    font-family: 'Inter', sans-serif; 
+ html, body {
+    font-family: 'Inter', sans-serif;
     background-color: #0a0a0c;
-  }
+    max-width: 100vw;
+    overflow-x: hidden;
+    width: 100%;
+}
+
+* {
+    max-width: 100%;
+}
   
   #shader-canvas {
     position: fixed;
@@ -150,7 +157,7 @@ tailwind.config = {
 </div>
 <!-- Right Column: Interactive Mockup -->
 <div class="flex-1 relative flex items-center justify-center min-h-[650px] lg:min-h-0 opacity-0 animate-fade-up stagger-3">
-<div class="relative w-full max-w-[600px] aspect-square">
+<div class="relative w-full max-w-[600px] aspect-square" style="max-width: min(600px, 100vw - 3rem);">
 <!-- Glow Backgrounds -->
 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-accent-orange/20 rounded-full blur-[120px] opacity-20"></div>
 <!-- Main Glass Dashboard Mockup -->
