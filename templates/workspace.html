@@ -187,6 +187,37 @@
 </div>
 
 
+<!-- ════ MODAL AJUSTAR FALTAS ════ -->
+<div id="modal-faltas" class="modal-overlay">
+    <div class="modal-card bg-surface-container border border-outline-variant/20 rounded-3xl p-7 w-full max-w-sm shadow-2xl mx-4 relative overflow-hidden">
+        <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
+        <h3 class="font-black text-xl tracking-tighter text-on-background mb-1">Ajustar Faltas</h3>
+        <p id="modal-faltas-nombre" class="text-sm text-on-surface-variant mb-5"></p>
+        <input type="hidden" id="faltas-id-estudiante">
+        <div class="flex flex-col gap-3">
+            <div class="group">
+                <label class="block text-xs font-bold text-on-surface-variant mb-1 tracking-widest uppercase group-focus-within:text-primary transition-colors">
+                    Número de faltas totales
+                </label>
+                <input id="faltas-cantidad" type="number" min="0" max="99" placeholder="0"
+                    class="w-full bg-surface-container-low rounded-xl py-3 px-4 text-on-surface text-sm outline-none focus:ring-2 focus:ring-primary/40 transition-all"/>
+            </div>
+            <p class="text-xs text-on-surface-variant">El sistema redistribuirá las faltas hacia las clases más recientes del periodo.</p>
+        </div>
+        <p id="modal-faltas-msg" class="text-xs font-semibold text-center mt-3 min-h-[16px]"></p>
+        <div class="flex gap-2 mt-4">
+            <button onclick="guardarFaltas()"
+                class="flex-1 bg-primary-fixed text-on-primary-fixed font-bold text-xs py-3.5 rounded-xl hover:bg-primary transition-all active:scale-95 tracking-widest uppercase shadow-md shadow-primary/20">
+                Guardar
+            </button>
+            <button onclick="document.getElementById('modal-faltas').classList.remove('activo')"
+                class="flex-1 bg-surface-container-high text-on-surface-variant font-bold text-xs py-3.5 rounded-xl hover:bg-outline-variant/20 transition-all active:scale-95 border border-outline-variant/20">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- ════ MODAL FORM ESTUDIANTE ════ -->
 <div id="modal-form" class="modal-overlay">
     <div class="modal-card bg-surface-container border border-outline-variant/20 rounded-3xl p-7 w-full max-w-md shadow-2xl mx-4 relative overflow-hidden">
@@ -289,19 +320,26 @@ async function cargarClases() {
         const card = document.createElement("div");
         card.className = "bg-surface-container rounded-2xl p-5 flex items-center justify-between border border-outline-variant/10 hover:border-primary/20 transition-all group";
         card.innerHTML = `
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 flex-1 min-w-0">
                 <div class="w-10 h-10 bg-primary/15 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-primary/25 transition-colors">
                     <span class="material-symbols-outlined text-primary text-xl" style="font-variation-settings:'FILL' 1;">menu_book</span>
                 </div>
-                <div>
-                    <p class="font-bold text-on-background">${m.nombre}</p>
+                <div class="min-w-0">
+                    <p class="font-bold text-on-background truncate">${m.nombre}</p>
                     <p class="text-xs text-on-surface-variant mt-0.5">Sección ${m.seccion} · ${m.horario_texto}</p>
                 </div>
             </div>
-            <button onclick="irAClase(${m.id_materia}, '${m.nombre}', '${m.seccion}')"
-                class="flex items-center gap-1.5 bg-surface-container-high text-on-surface font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-primary hover:text-on-primary transition-all active:scale-95 border border-outline-variant/20 flex-shrink-0">
-                Entrar <span class="material-symbols-outlined text-base">arrow_forward</span>
-            </button>`;
+            <div class="flex gap-2 flex-shrink-0">
+                <button onclick="irAClase(${m.id_materia}, '${m.nombre}', '${m.seccion}')"
+                    class="flex items-center gap-1.5 bg-surface-container-high text-on-surface font-bold text-xs px-4 py-2.5 rounded-xl hover:bg-primary hover:text-on-primary transition-all active:scale-95 border border-outline-variant/20">
+                    Entrar <span class="material-symbols-outlined text-base">arrow_forward</span>
+                </button>
+                <button onclick="confirmarEliminarClase(${m.id_materia}, '${m.nombre}')"
+                    title="Eliminar clase"
+                    class="flex items-center justify-center w-10 h-10 rounded-xl bg-error/10 text-error border border-error/20 hover:bg-error/20 transition-all active:scale-95">
+                    <span class="material-symbols-outlined text-base">delete</span>
+                </button>
+            </div>`;
         grid.appendChild(card);
     });
 
@@ -441,10 +479,17 @@ async function cargarEstudiantes() {
         html += `<td>
             <div class="flex gap-1.5">
                 <button onclick='abrirModalEditar(${JSON.stringify(e)})'
+                    title="Editar datos"
                     class="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95">
                     <span class="material-symbols-outlined text-sm">edit</span>
                 </button>
+                <button onclick="abrirModalFaltas(${e.id_estudiante}, '${e.nombre.replace(/'/g,"\\'")}', ${e.faltas})"
+                    title="Ajustar faltas"
+                    class="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all active:scale-95">
+                    <span class="material-symbols-outlined text-sm">event_busy</span>
+                </button>
                 <button onclick="confirmarEliminar(${e.id_estudiante})"
+                    title="Eliminar estudiante"
                     class="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-error/10 text-error border border-error/20 hover:bg-error/20 transition-all active:scale-95">
                     <span class="material-symbols-outlined text-sm">delete</span>
                 </button>
@@ -497,6 +542,47 @@ function descargarPDF() {
             a.remove();
         });
 }
+
+// ── ELIMINAR CLASE ───────────────────────────────────────────
+async function confirmarEliminarClase(idMateria, nombreClase) {
+    if (!confirm(`¿Eliminar la clase "${nombreClase}"?\n\nEsto borrará también todos los estudiantes y registros de asistencia. Esta acción no se puede deshacer.`)) return;
+    const resp = await fetch(`/materia/${idMateria}`, { method: "DELETE", headers: { "Authorization": "Bearer " + tkn() } });
+    if (resp.ok) {
+        cargarClases();
+    } else {
+        const d = await resp.json();
+        alert(d.detail || "Error al eliminar la clase.");
+    }
+}
+
+// ── AJUSTAR FALTAS ───────────────────────────────────────────
+function abrirModalFaltas(idEstudiante, nombre, faltasActuales) {
+    document.getElementById("faltas-id-estudiante").value = idEstudiante;
+    document.getElementById("modal-faltas-nombre").innerText = `Estudiante: ${nombre}`;
+    document.getElementById("faltas-cantidad").value = faltasActuales;
+    document.getElementById("modal-faltas-msg").innerText = "";
+    document.getElementById("modal-faltas").classList.add("activo");
+}
+
+async function guardarFaltas() {
+    const idEst  = document.getElementById("faltas-id-estudiante").value;
+    const faltas = parseInt(document.getElementById("faltas-cantidad").value);
+    const msgEl  = document.getElementById("modal-faltas-msg");
+    if (isNaN(faltas) || faltas < 0) { msgEl.innerText = "Ingresa un número válido."; msgEl.style.color = "#ffb4ab"; return; }
+    const resp  = await fetch(`/estudiante/${idEst}/ajustar_faltas`, {
+        method: "PUT", headers: hdrs(), body: JSON.stringify({ faltas })
+    });
+    const datos = await resp.json();
+    if (resp.ok) {
+        document.getElementById("modal-faltas").classList.remove("activo");
+        cargarEstudiantes();
+    } else {
+        msgEl.innerText = datos.detail;
+        msgEl.style.color = "#ffb4ab";
+    }
+}
+
+document.getElementById("modal-faltas").addEventListener("click", e => { if (e.target === e.currentTarget) document.getElementById("modal-faltas").classList.remove("activo"); });
 
 // ── CRUD ESTUDIANTES ─────────────────────────────────────────
 function abrirModalAgregar() {
@@ -595,7 +681,11 @@ document.getElementById("modal-form").addEventListener("click", e => { if(e.targ
 async function publicarGrabacion() {
     const url = document.getElementById("url-grabacion").value.trim();
     if (!url) { alert("Pega el URL de la grabación primero."); return; }
-    const resp  = await fetch(`/materia/${idMateriaActual}/publicar_grabacion?url_video=${encodeURIComponent(url)}`, { method:"POST", headers:{"Authorization":"Bearer "+tkn()} });
+    const resp  = await fetch(`/materia/${idMateriaActual}/publicar_grabacion`, {
+        method: "POST",
+        headers: hdrs(),
+        body: JSON.stringify({ url })
+    });
     const datos = await resp.json();
     const el    = document.getElementById("estado-grabacion");
     el.innerText   = resp.ok ? "✓ " + datos.mensaje : datos.detail;

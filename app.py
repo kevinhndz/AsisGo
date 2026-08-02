@@ -604,20 +604,30 @@ def marcar_asistencia(
         TablaMaterias.id_materia == id_materia
     ).first()
 
-    dentro_del_rango = None
+    # ── Lógica de ubicación ──────────────────────────────────────────────────
+    # Reglas:
+    #   Virtual   → siempre presente (sin importar GPS)
+    #   Presencial + aula NO configurada → presente (no hay referencia para validar)
+    #   Presencial + aula configurada + alumno SIN GPS → presente (no podemos validar;
+    #       el profesor puede corregir manualmente si lo desea)
+    #   Presencial + aula configurada + alumno CON GPS + dentro del rango → presente
+    #   Presencial + aula configurada + alumno CON GPS + FUERA del rango → ausente
 
-    if estudiante.modalidad == "presencial" and materia.lat_aula and materia.lng_aula:
-        if json_enviado.lat is not None and json_enviado.lng is not None:
+    dentro_del_rango = None   # None = no se pudo validar (sin GPS o sin aula)
+    esta_presente = True      # por defecto se marca presente
+
+    if estudiante.modalidad == "presencial":
+        aula_configurada = bool(materia.lat_aula and materia.lng_aula)
+        alumno_tiene_gps = (json_enviado.lat is not None and json_enviado.lng is not None)
+
+        if aula_configurada and alumno_tiene_gps:
             distancia = distancia_metros(
                 json_enviado.lat, json_enviado.lng,
                 float(materia.lat_aula), float(materia.lng_aula)
             )
             dentro_del_rango = distancia <= 50
-
-    if estudiante.modalidad == "presencial":
-        esta_presente = dentro_del_rango is True
-    else:
-        esta_presente = True
+            esta_presente = dentro_del_rango   # True si está cerca, False si está lejos
+        # Si no hay aula configurada O el alumno no tiene GPS → esta_presente queda True
 
     hoy = date.today()
     ya_marco = base_datos.query(TablaAsistencia).filter(
@@ -643,7 +653,9 @@ def marcar_asistencia(
     base_datos.commit()
 
     if estudiante.modalidad == "presencial" and not esta_presente:
-        mensaje_final = f"Registro recibido, {estudiante.nombre}, pero estás fuera del rango del aula. No se contará como presente."
+        mensaje_final = f"Registro recibido, {estudiante.nombre}, pero estás fuera del rango del aula ({int(distancia)}m). No se contará como presente."
+    elif dentro_del_rango is None and estudiante.modalidad == "presencial":
+        mensaje_final = f"Asistencia registrada, {estudiante.nombre}! (Sin validación de GPS)"
     else:
         mensaje_final = f"Asistencia registrada, {estudiante.nombre}!"
 

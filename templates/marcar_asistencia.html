@@ -49,10 +49,17 @@
             </div>
             <div class="absolute inset-0 bg-primary/20 rounded-full pulse-ring" id="pulse-anim"></div>
         </div>
-        <p id="estado-ubicacion" class="text-sm text-on-surface-variant">Solicitando ubicación...</p>
+        <div class="flex-1">
+            <p id="estado-ubicacion" class="text-sm text-on-surface-variant">Intentando obtener ubicación...</p>
+            <!-- Botón para pedir ubicación manualmente si el browser no la pidió solo -->
+            <button id="btn-pedir-ubicacion" onclick="pedirUbicacionManual()"
+                class="mt-2 text-xs font-bold text-primary underline underline-offset-2 hover:opacity-70 transition-opacity hidden">
+                Intentar de nuevo con ubicación
+            </button>
+        </div>
     </div>
 
-    <!-- Form card — se muestra solo cuando la ubicación ya se resolvió -->
+    <!-- Form card — se muestra en cuanto se resuelve la ubicación (con o sin éxito) -->
     <div id="formulario-container" style="display:none;">
         <div class="bg-surface-container rounded-2xl p-6 shadow-xl relative overflow-hidden">
             <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
@@ -87,19 +94,17 @@
             <span class="material-symbols-outlined text-primary" style="font-size:36px; font-variation-settings:'FILL' 1;">check_circle</span>
         </div>
         <p id="mensaje-exito" class="text-lg font-bold text-on-background"></p>
-        <p class="text-sm text-on-surface-variant mt-2">Tu asistencia ha sido registrada correctamente.</p>
+        <p class="text-sm text-on-surface-variant mt-2">Tu asistencia ha sido registrada.</p>
     </div>
 
 </main>
 
 <script>
-const parametros = new URLSearchParams(window.location.search);
-const idMateria  = parametros.get("id_materia");
-// FIX TOKEN EXPIRADO: no guardamos el token del QR inicial; lo pedimos de nuevo
-// justo antes de hacer el POST para que llegue fresco al backend.
-// El token del URL solo se usa si no podemos pedir uno nuevo (fallback).
+const parametros   = new URLSearchParams(window.location.search);
+const idMateria    = parametros.get("id_materia");
 const tokenInicial = parametros.get("token");
 
+// lat/lng en null = sin ubicación. El backend acepta null y aplica la lógica correcta.
 let ubicacion = { lat: null, lng: null };
 let ubicacionResuelta = false;
 
@@ -108,66 +113,89 @@ function mostrarForm() {
     document.getElementById("pulse-anim").style.display = "none";
 }
 
-// FIX UBICACIÓN EN HTTP: en localhost/HTTP el browser puede bloquear geolocation.
-// Usamos un timeout de 8s; si no responde, continuamos sin ubicación para no
-// bloquear a los alumnos virtuales ni a los que el browser no les pregunta.
-const timeoutUbicacion = setTimeout(() => {
-    if (!ubicacionResuelta) {
-        ubicacionResuelta = true;
-        document.getElementById("estado-ubicacion").innerText = "Sin ubicación — se registrará sin validación de rango.";
-        document.getElementById("icono-ubicacion").textContent = "location_off";
-        mostrarForm();
-    }
-}, 8000);
+function setEstadoUbicacion(icono, texto, mostrarBotonReintentar) {
+    document.getElementById("icono-ubicacion").textContent = icono;
+    document.getElementById("estado-ubicacion").innerText = texto;
+    const btn = document.getElementById("btn-pedir-ubicacion");
+    btn.classList.toggle("hidden", !mostrarBotonReintentar);
+}
 
-if (navigator.geolocation) {
+let timeoutUbicacion = null;
+
+function intentarObtenerUbicacion() {
+    if (!navigator.geolocation) {
+        ubicacionResuelta = true;
+        setEstadoUbicacion("location_off", "Tu navegador no soporta geolocalización — se registrará sin validar rango.", false);
+        mostrarForm();
+        return;
+    }
+
+    setEstadoUbicacion("my_location", "Intentando obtener ubicación...", false);
+
+    
+    timeoutUbicacion = setTimeout(() => {
+        if (!ubicacionResuelta) {
+            ubicacionResuelta = true;
+            setEstadoUbicacion(
+                "location_off",
+                "No se pudo obtener ubicación (puede que el navegador la bloquee en HTTP). Puedes marcar igual.",
+                true   // 
+            );
+            mostrarForm();
+        }
+    }, 5000);
+
     navigator.geolocation.getCurrentPosition(
         function(pos) {
-            if (ubicacionResuelta) return; // ya resolvió por timeout
+            if (ubicacionResuelta) return;
             clearTimeout(timeoutUbicacion);
             ubicacionResuelta = true;
             ubicacion.lat = pos.coords.latitude;
             ubicacion.lng = pos.coords.longitude;
-            document.getElementById("estado-ubicacion").innerText = "Ubicación obtenida ✓";
-            document.getElementById("icono-ubicacion").textContent = "location_on";
+            setEstadoUbicacion("location_on", `Ubicación obtenida ✓ (±${Math.round(pos.coords.accuracy)}m)`, false);
             mostrarForm();
         },
         function(err) {
             if (ubicacionResuelta) return;
             clearTimeout(timeoutUbicacion);
             ubicacionResuelta = true;
-            // Error puede ser: permiso denegado (1), posición no disponible (2), timeout (3)
             const msgs = {
-                1: "Permiso de ubicación denegado — se registrará sin validación de rango.",
-                2: "Ubicación no disponible en este momento.",
-                3: "Tiempo agotado obteniendo ubicación."
+                1: "Permiso denegado — el sistema validará sin GPS.",
+                2: "Ubicación no disponible — el sistema validará sin GPS.",
+                3: "Tiempo agotado — el sistema validará sin GPS."
             };
-            document.getElementById("estado-ubicacion").innerText = msgs[err.code] || "Sin ubicación.";
-            document.getElementById("icono-ubicacion").textContent = "location_off";
+            setEstadoUbicacion("location_off", msgs[err.code] || "Sin ubicación.", err.code === 1);
             mostrarForm();
         },
-        // FIX: timeout corto para que no bloquee; enableHighAccuracy para móviles
-        { enableHighAccuracy: true, timeout: 7000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 4500, maximumAge: 0 }
     );
-} else {
-    clearTimeout(timeoutUbicacion);
-    ubicacionResuelta = true;
-    document.getElementById("estado-ubicacion").innerText = "Geolocalización no soportada en este navegador.";
-    document.getElementById("icono-ubicacion").textContent = "location_off";
-    mostrarForm();
 }
 
+
+function pedirUbicacionManual() {
+    if (ubicacionResuelta) {
+        // Resetear para reintentar
+        ubicacionResuelta = false;
+        ubicacion = { lat: null, lng: null };
+    }
+    intentarObtenerUbicacion();
+}
+
+// Arrancar
+intentarObtenerUbicacion();
+
+// ─── ENVIAR ASISTENCIA ───────────────────────────────────────────────────────
 document.getElementById("formulario-asistencia").addEventListener("submit", async function(e) {
     e.preventDefault();
-    const btn = document.getElementById("btn-marcar");
+    const btn   = document.getElementById("btn-marcar");
     const msgEl = document.getElementById("mensaje");
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-lg">progress_activity</span> Registrando...';
+    msgEl.innerText = "";
 
     const numero_cuenta = document.getElementById("numero_cuenta").value.trim();
 
-    // FIX TOKEN EXPIRADO: pedimos un token fresco justo antes de postear.
-    // Si falla (clase ya no activa), usamos el token del URL como fallback.
+    
     let tokenFinal = tokenInicial;
     try {
         const respToken = await fetch(`/materia/${idMateria}/generar_qr_token_publico`);
@@ -175,15 +203,18 @@ document.getElementById("formulario-asistencia").addEventListener("submit", asyn
             const dt = await respToken.json();
             tokenFinal = dt.token;
         }
-    } catch (_) {
-        // red caída: usamos el token del QR escaneado
-    }
+    } catch (_) {  }
 
     try {
         const respuesta = await fetch(`/marcar_asistencia?id_materia=${idMateria}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ token: tokenFinal, numero_cuenta, lat: ubicacion.lat, lng: ubicacion.lng })
+            body: JSON.stringify({
+                token: tokenFinal,
+                numero_cuenta,
+                lat: ubicacion.lat,  
+                lng: ubicacion.lng
+            })
         });
         const datos = await respuesta.json();
 
