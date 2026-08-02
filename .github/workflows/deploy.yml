@@ -3,7 +3,7 @@ name: Deploy to Droplet
 on:
   push:
     branches:
-      - main 
+      - main
 
 jobs:
   deploy:
@@ -21,8 +21,6 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /app
-            git pull origin main
-            docker build -t app-fastapi .
-            docker stop api-container || true
-            docker rm api-container || true
-            docker run -d -p 8000:8000 --name api-container --env-file .env app-fastapi
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose up -d --build
