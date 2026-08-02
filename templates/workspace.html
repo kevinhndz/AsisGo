@@ -385,8 +385,8 @@ async function verificarClaseEnCurso() {
 }
 
 async function cargarAsistenciaVivo() {
-    // FIX: también refrescamos la tabla estática para que los íconos se actualicen
-    cargarEstudiantes();
+    // Solo actualiza el panel en vivo. La tabla de estudiantes NO se recarga
+    // automáticamente para evitar el parpadeo cada 10s.
     const resp  = await fetch(`/materia/${idMateriaActual}/asistencia_hoy`, { headers:{"Authorization":"Bearer "+tkn()} });
     if (!resp.ok) return;
     const datos = await resp.json();
