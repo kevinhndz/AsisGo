@@ -1,39 +1,49 @@
+
+
 from pydantic import BaseModel, Field
 from typing import Optional
 
 
+# ── Login ────────────────────────────────────────────────────────────────────
 class RevisarDatos(BaseModel):
-    usuario: str = Field(min_length=6, max_length=10)
-    contrasena: str = Field(min_length=8, max_length=15)
+   
+    usuario:    str = Field(min_length=4, max_length=50)
+   
+    contrasena: str = Field(min_length=8, max_length=72)
+    
 
 
+# ── Registro de profesor ─────────────────────────────────────────────────────
 class CrearCliente(BaseModel):
-    nombre: str = Field(min_length=2, max_length=100)
-    telefono: str = Field(min_length=8, max_length=20)
-    correo: str = Field(min_length=9, max_length=150)
-    usuario: str = Field(min_length=6, max_length=10)
-    contrasena: str = Field(min_length=8, max_length=15)
+    nombre:     str = Field(min_length=2,  max_length=100)
+    telefono:   str = Field(min_length=7,  max_length=20)
+    correo:     str = Field(min_length=6,  max_length=254)  
+    usuario:    str = Field(min_length=4,  max_length=50)
+    contrasena: str = Field(min_length=8,  max_length=72)
 
 
+# ── Crear materia ────────────────────────────────────────────────────────────
 class CrearMateria(BaseModel):
-    nombre: str = Field(min_length=5, max_length=50)
-    seccion: str = Field(min_length=4, max_length=8)
-    horario: str = Field(min_length=5, max_length=10)
+    nombre:  str = Field(min_length=3, max_length=100)
+    seccion: str = Field(min_length=2, max_length=20)
+    horario: str = Field(min_length=5, max_length=50)
 
 
+# ── Inscripcin de estudiante ────────────────────────────────────────────────
 class CrearEstudiante(BaseModel):
-    nombre: str = Field(min_length=2, max_length=100)
-    telefono: str = Field(min_length=8, max_length=20)
-    correo: str = Field(min_length=9, max_length=150)
+    nombre:        str = Field(min_length=2, max_length=100)
+    telefono:      str = Field(min_length=7, max_length=20)
+    correo:        str = Field(min_length=6, max_length=254)
     numero_cuenta: str = Field(min_length=4, max_length=20)
-    modalidad: str = Field(min_length=6, max_length=15)
+    modalidad:     str = Field(min_length=6, max_length=15)  # 'presencial' | 'virtual'
 
 
+# ── Marcar asistencia ────────────────────────────────────────────────────────
 class MarcarAsistencia(BaseModel):
-    token: str = Field(min_length=10, max_length=40)
-    numero_cuenta: str = Field(min_length=4, max_length=20)
-    lat: Optional[float] = None
-    lng: Optional[float] = None
+    token:         str            = Field(min_length=10, max_length=40)
+    numero_cuenta: str            = Field(min_length=4,  max_length=20)
+    lat:           Optional[float] = None
+    lng:           Optional[float] = None
 
 
 class ConfigurarUbicacionAula(BaseModel):
