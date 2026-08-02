@@ -44,12 +44,21 @@ tailwind.config = {
 }
 </script>
 <style>
- html, body {
-    font-family: 'Inter', sans-serif;
-    background-color: #0a0a0c;
-    max-width: 100vw;
+html {
     overflow-x: hidden;
     width: 100%;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0a0a0c;
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+}
+
+#shader-canvas {
+    max-width: 100vw !important;
 }
 
 * {
@@ -385,8 +394,8 @@ tailwind.config = {
       });
 
       function render(time) {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
+        const width = document.documentElement.clientWidth;
+        const height = document.documentElement.clientHeight;
         if (canvas.width !== width || canvas.height !== height) {
           canvas.width = width;
           canvas.height = height;
