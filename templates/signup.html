@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
 <title>Registro — Asis GO+</title>
-<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script>
 tailwind.config = { darkMode:"class", theme:{ extend:{ colors:{
   "background":"#131313","surface":"#131313",
@@ -16,7 +16,7 @@ tailwind.config = { darkMode:"class", theme:{ extend:{ colors:{
   "tertiary":"#8bdc00","tertiary-container":"#6baa00","on-tertiary-container":"#203700",
   "outline":"#a98a7d","outline-variant":"#5a4136","error":"#ffb4ab"
 }, fontFamily:{
-  "body-md":["Geist"],"body-sm":["Geist"],"headline-lg":["Geist"],
+  "body-md":["Geist"],"body-sm":["Geist"],"headline-lg":["Geist"],"headline-md":["Geist"],
   "label-bold":["Geist"],"label-caps":["Geist"],
   "headline-xl":["Geist"],"headline-lg-mobile":["Geist"]
 }, fontSize:{
@@ -38,110 +38,136 @@ tailwind.config = { darkMode:"class", theme:{ extend:{ colors:{
   .animate-fade-in{animation:fadeIn 0.5s ease-out;}
   @keyframes spin{to{transform:rotate(360deg);}}
   .animate-spin{animation:spin 1s linear infinite;}
+  .glass-card {
+    background: rgba(32, 31, 31, 0.6);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 182, 147, 0.1);
+  }
 </style>
 </head>
-<body class="bg-background pt-safe pb-safe" style="font-family:'Geist',sans-serif;">
+<body class="bg-background text-on-surface overflow-x-hidden" style="font-family:'Geist',sans-serif;">
+<main class="flex min-h-screen w-full">
 
-<main class="relative w-full min-h-screen">
-  <div class="flex flex-col w-full h-full p-10 gap-16">
-
-    <!-- Header -->
-    <div class="flex flex-col gap-2 items-center text-center">
-      <div class="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center shadow-lg relative overflow-hidden mb-4">
-        <div class="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
-        <span class="material-symbols-outlined text-4xl text-primary relative z-10" style="font-variation-settings:'FILL' 1;">school</span>
-      </div>
-      <h1 class="font-headline-xl text-headline-xl text-on-surface">Únete a Asis GO+</h1>
-      <p class="font-body-md text-body-md text-on-surface-variant max-w-sm mx-auto">
-        Crea tu cuenta de administrador para gestionar la asistencia con precisión.
+  <!-- Left Side: Immersive Visual -->
+  <section class="hidden lg:flex relative w-1/2 h-screen overflow-hidden sticky top-0">
+    <img alt="Asis GO+ Visual" class="absolute inset-0 w-full h-full object-cover"
+         src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1WLDqJZVZYW6t5TXro6c-zkVBCdElKygfcVbRfhkis1IMOIQJuXXPNkCLpOhcFmMwFR5-Gab-qsye92sK08Jzn0uCSNSu_J95vZvzNuMYpq7SpphB98ewA-2Df-YzCAngzzoPet8jSVn8EC_PnGVNhoM-b2TmFx2hnAE5yZDdn_Wl_-LnjlNdLzNe6XZkrlf4wzi8yrSfaDCYVIuzQe1JKjijCb4bydb1K6Ka2ZsAsx8Nz-yzD48CZQ">
+    <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80"></div>
+    <div class="absolute bottom-0 left-0 w-full p-16 animate-fade-in">
+      <h2 class="font-headline-xl text-5xl font-bold mb-4 bg-gradient-to-r from-white to-primary bg-clip-text text-transparent tracking-tight">Gestión Inteligente de Asistencia</h2>
+      <p class="font-body-md text-lg text-on-surface/80 max-w-lg leading-relaxed">
+        Optimiza el control académico con tecnología de vanguardia. Diseñado para administradores que buscan precisión y eficiencia en tiempo real.
       </p>
     </div>
+  </section>
 
-    <!-- Form -->
-    <form class="flex flex-col gap-6 max-w-md w-full mx-auto" id="formulario-registro" onsubmit="handleSignup(event)">
+  <!-- Right Side: Signup Form -->
+  <section class="flex flex-col items-center justify-center w-full lg:w-1/2 min-h-screen p-6 md:p-12 lg:p-24 bg-background">
+    <div class="w-full max-w-md animate-fade-in">
 
-      <!-- Nombre -->
-      <div class="flex flex-col gap-1">
-        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Nombre Completo</label>
-        <div class="relative group">
-          <input id="nombre" type="text" required placeholder="Ej. María García"
-            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
-          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">person</span>
+      <!-- Mobile Logo -->
+      <div class="lg:hidden flex flex-col items-center text-center mb-10">
+        <div class="w-16 h-16 rounded-2xl bg-surface-container-high flex items-center justify-center shadow-lg relative overflow-hidden mb-4">
+          <div class="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
+          <span class="material-symbols-outlined text-4xl text-primary relative z-10" style="font-variation-settings:'FILL' 1;">school</span>
         </div>
+        <h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Crear Cuenta</h1>
       </div>
 
-      <!-- Correo -->
-      <div class="flex flex-col gap-1">
-        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Correo Electrónico</label>
-        <div class="relative group">
-          <input id="correo" type="email" required placeholder="usuario@universidad.edu"
-            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
-          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">mail</span>
+      <div class="hidden lg:block mb-10">
+        <h1 class="text-4xl font-bold text-on-surface mb-2">Crear Cuenta</h1>
+        <p class="text-on-surface-variant">Configura tu perfil de administrador para comenzar.</p>
+      </div>
+
+      <!-- Form -->
+      <form class="flex flex-col gap-5 w-full" id="formulario-registro" onsubmit="handleSignup(event)">
+
+        <!-- Nombre -->
+        <div class="flex flex-col gap-1.5">
+          <label class="font-label-caps text-[10px] text-on-surface-variant/70 uppercase tracking-widest px-1">Nombre Completo</label>
+          <div class="relative group">
+            <input id="nombre" type="text" required placeholder="Ej. María García"
+              class="w-full h-12 bg-surface-container rounded-xl px-5 font-body-md text-body-md text-on-surface border border-transparent placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all">
+            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-primary transition-colors text-[20px]">person</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Teléfono -->
-      <div class="flex flex-col gap-1">
-        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Teléfono</label>
-        <div class="relative group">
-          <input id="telefono" type="text" required placeholder="+504 9999-9999"
-            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
-          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">call</span>
+        <!-- Correo -->
+        <div class="flex flex-col gap-1.5">
+          <label class="font-label-caps text-[10px] text-on-surface-variant/70 uppercase tracking-widest px-1">Correo Electrónico</label>
+          <div class="relative group">
+            <input id="correo" type="email" required placeholder="usuario@universidad.edu"
+              class="w-full h-12 bg-surface-container rounded-xl px-5 font-body-md text-body-md text-on-surface border border-transparent placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all">
+            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-primary transition-colors text-[20px]">mail</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Usuario -->
-      <div class="flex flex-col gap-1">
-        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Usuario <span class="normal-case tracking-normal">(6–10 caracteres)</span></label>
-        <div class="relative group">
-          <input id="usuario" type="text" required placeholder="mi_usuario"
-            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
-          <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary transition-colors">alternate_email</span>
+        <!-- Teléfono -->
+        <div class="flex flex-col gap-1.5">
+          <label class="font-label-caps text-[10px] text-on-surface-variant/70 uppercase tracking-widest px-1">Teléfono</label>
+          <div class="relative group">
+            <input id="telefono" type="text" required placeholder="+504 9999-9999"
+              class="w-full h-12 bg-surface-container rounded-xl px-5 font-body-md text-body-md text-on-surface border border-transparent placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all">
+            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-primary transition-colors text-[20px]">call</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Contraseña -->
-      <div class="flex flex-col gap-1">
-        <label class="font-label-caps text-label-caps text-on-surface-variant px-4">Contraseña <span class="normal-case tracking-normal">(8–15 caracteres)</span></label>
-        <div class="relative group">
-          <input id="contrasena" type="password" required placeholder="••••••••"
-            class="w-full h-14 bg-surface-container rounded-lg px-6 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-1 focus:ring-primary focus:bg-surface-container-high transition-all">
-          <button type="button" onclick="togglePass()"
-            class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface transition-colors">
-            <span class="material-symbols-outlined" id="eye-icon">visibility</span>
-          </button>
+        <!-- Usuario + Contraseña en grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Usuario -->
+          <div class="flex flex-col gap-1.5">
+            <label class="font-label-caps text-[10px] text-on-surface-variant/70 uppercase tracking-widest px-1">Usuario</label>
+            <div class="relative group">
+              <input id="usuario" type="text" required placeholder="mi_usuario"
+                class="w-full h-12 bg-surface-container rounded-xl px-5 font-body-sm text-body-sm text-on-surface border border-transparent placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all">
+              <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 group-focus-within:text-primary transition-colors text-[20px]">alternate_email</span>
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div class="flex flex-col gap-1.5">
+            <label class="font-label-caps text-[10px] text-on-surface-variant/70 uppercase tracking-widest px-1">Contraseña</label>
+            <div class="relative group">
+              <input id="contrasena" type="password" required placeholder="••••••••"
+                class="w-full h-12 bg-surface-container rounded-xl px-5 font-body-sm text-body-sm text-on-surface border border-transparent placeholder:text-on-surface-variant/30 focus:outline-none focus:border-primary/50 focus:bg-surface-container-high transition-all">
+              <button type="button" onclick="togglePass()"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 hover:text-on-surface transition-colors">
+                <span class="material-symbols-outlined text-[20px]" id="eye-icon">visibility</span>
+              </button>
+            </div>
+          </div>
         </div>
+
+        <!-- Mensaje error -->
+        <p id="msg-error" class="text-sm font-semibold text-center text-error min-h-[18px] mt-1"></p>
+
+        <!-- Submit -->
+        <button type="submit" id="btn-submit"
+          class="w-full h-14 mt-2 bg-primary text-on-primary rounded-xl font-label-bold text-label-bold flex items-center justify-center gap-2 hover:brightness-110 active:scale-[0.98] transition-all shadow-xl shadow-primary/10">
+          <span id="btn-text">Crear cuenta</span>
+          <span class="material-symbols-outlined text-sm" id="btn-icon" style="font-variation-settings:'FILL' 1;">arrow_forward</span>
+          <span id="btn-loader" class="hidden"><span class="material-symbols-outlined animate-spin">progress_activity</span></span>
+        </button>
+
+        <p class="font-body-sm text-body-sm text-on-surface-variant text-center mt-4">
+          ¿Ya tienes cuenta?
+          <a href="/iniciar_sesion" class="text-primary hover:text-primary-fixed transition-colors ml-1 font-semibold">Inicia sesión</a>
+        </p>
+      </form>
+
+      <!-- Success State -->
+      <div id="success-state" class="hidden flex-col items-center justify-center text-center py-12 animate-fade-in glass-card rounded-3xl p-10">
+        <div class="w-20 h-20 rounded-full bg-tertiary/10 border border-tertiary/20 flex items-center justify-center mb-6">
+          <span class="material-symbols-outlined text-5xl text-tertiary" style="font-variation-settings:'FILL' 1;">check_circle</span>
+        </div>
+        <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-3">¡Registro completado!</h2>
+        <p class="font-body-md text-lg text-on-surface/80 max-w-lg leading-relaxed">
+          Tu cuenta ha sido creada con éxito. Redirigiendo al panel de control...
+        </p>
       </div>
 
-      <!-- Mensaje error -->
-      <p id="msg-error" class="text-sm font-semibold text-center text-error min-h-[18px]"></p>
-
-      <!-- Submit -->
-      <button type="submit" id="btn-submit"
-        class="w-full h-14 mt-2 bg-primary text-on-primary rounded-full font-label-bold text-label-bold flex items-center justify-center gap-2 hover:bg-primary-fixed hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
-        <span id="btn-text">Crear cuenta</span>
-        <span class="material-symbols-outlined text-sm" id="btn-icon" style="font-variation-settings:'FILL' 1;">arrow_forward</span>
-        <span id="btn-loader" class="hidden"><span class="material-symbols-outlined animate-spin">progress_activity</span></span>
-      </button>
-
-      <p class="font-body-sm text-body-sm text-on-surface-variant text-center mt-2">
-        ¿Ya tienes cuenta?
-        <a href="/iniciar_sesion" class="text-primary hover:text-primary-fixed transition-colors ml-1 font-semibold">Inicia sesión</a>
-      </p>
-    </form>
-
-    <!-- Estado de éxito (oculto hasta submit exitoso) -->
-    <div id="success-state" class="hidden flex-col items-center justify-center text-center py-12 max-w-sm mx-auto animate-fade-in">
-      <div class="w-20 h-20 rounded-full bg-tertiary-container flex items-center justify-center shadow-[0_0_40px_rgba(107,170,0,0.3)] mb-6">
-        <span class="material-symbols-outlined text-5xl text-on-tertiary-container" style="font-variation-settings:'FILL' 1;">check_circle</span>
-      </div>
-      <h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-2">¡Bienvenido a bordo!</h2>
-      <p class="font-body-md text-body-md text-on-surface-variant mb-8">
-        Tu cuenta ha sido creada. Redirigiendo al panel...
-      </p>
     </div>
-
-  </div>
+  </section>
 </main>
 
 <script>
