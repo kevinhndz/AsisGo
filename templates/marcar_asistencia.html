@@ -102,11 +102,14 @@
 <script>
 const parametros   = new URLSearchParams(window.location.search);
 const idMateria    = parametros.get("id_materia");
-const tokenInicial = parametros.get("token");
 
-// lat/lng en null = sin ubicación. El backend acepta null y aplica la lógica correcta.
+const TOKEN_DEL_QR = parametros.get("token");
+
 let ubicacion = { lat: null, lng: null };
-let ubicacionResuelta = false;
+
+
+let resolverUbicacion = null;
+const promesaUbicacion = new Promise(resolve => { resolverUbicacion = resolve; });
 
 function mostrarForm() {
     document.getElementById("formulario-container").style.display = "block";
@@ -116,125 +119,143 @@ function mostrarForm() {
 function setEstadoUbicacion(icono, texto, mostrarBotonReintentar) {
     document.getElementById("icono-ubicacion").textContent = icono;
     document.getElementById("estado-ubicacion").innerText = texto;
-    const btn = document.getElementById("btn-pedir-ubicacion");
-    btn.classList.toggle("hidden", !mostrarBotonReintentar);
+    document.getElementById("btn-pedir-ubicacion").classList.toggle("hidden", !mostrarBotonReintentar);
 }
 
-let timeoutUbicacion = null;
+let watchId       = null;   // ID del watchPosition activo
+let timeoutGPS    = null;   // ID del setTimeout de respaldo
 
-function intentarObtenerUbicacion() {
+function iniciarGPS() {
+    // Limpiar cualquier intento anterior
+    if (watchId !== null)    { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    if (timeoutGPS !== null) { clearTimeout(timeoutGPS); timeoutGPS = null; }
+
     if (!navigator.geolocation) {
-        ubicacionResuelta = true;
         setEstadoUbicacion("location_off", "Tu navegador no soporta geolocalización — se registrará sin validar rango.", false);
+        resolverUbicacion({ lat: null, lng: null });
         mostrarForm();
         return;
     }
 
-    setEstadoUbicacion("my_location", "Intentando obtener ubicación...", false);
+    setEstadoUbicacion("my_location", "Solicitando permiso de ubicación...", false);
 
-    
-    timeoutUbicacion = setTimeout(() => {
-        if (!ubicacionResuelta) {
-            ubicacionResuelta = true;
-            setEstadoUbicacion(
-                "location_off",
-                "No se pudo obtener ubicación (puede que el navegador la bloquee en HTTP). Puedes marcar igual.",
-                true   // 
-            );
-            mostrarForm();
-        }
-    }, 5000);
+  
+    watchId = navigator.geolocation.watchPosition(
+        function onExito(pos) {
+            // Limpiamos el watch apenas tenemos la primera posición válida
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            if (timeoutGPS !== null) { clearTimeout(timeoutGPS); timeoutGPS = null; }
 
-    navigator.geolocation.getCurrentPosition(
-        function(pos) {
-            if (ubicacionResuelta) return;
-            clearTimeout(timeoutUbicacion);
-            ubicacionResuelta = true;
-            ubicacion.lat = pos.coords.latitude;
-            ubicacion.lng = pos.coords.longitude;
+            const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            ubicacion = coords;
             setEstadoUbicacion("location_on", `Ubicación obtenida ✓ (±${Math.round(pos.coords.accuracy)}m)`, false);
+            resolverUbicacion(coords);
             mostrarForm();
+        },
+        function onError(err) {
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            if (timeoutGPS !== null) { clearTimeout(timeoutGPS); timeoutGPS = null; }
+
+            const msgs = {
+                1: "Permiso denegado — se registrará sin validar rango GPS.",
+                2: "Ubicación no disponible — se registrará sin validar rango GPS.",
+                3: "Tiempo agotado — se registrará sin validar rango GPS."
+            };
+            // Solo mostramos "Reintentar" cuando el permiso fue denegado (código 1),
+            // porque en los otros casos reintentar no sirve de mucho.
+            setEstadoUbicacion("location_off", msgs[err.code] || "Sin ubicación.", err.code === 1);
+            resolverUbicacion({ lat: null, lng: null });
+            mostrarForm();
+        },
+        
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+
+  
+    timeoutGPS = setTimeout(() => {
+        if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+        setEstadoUbicacion(
+            "location_off",
+            "No se recibió respuesta del GPS. Puedes marcar igual o reintentar.",
+            true
+        );
+        resolverUbicacion({ lat: null, lng: null });
+        mostrarForm();
+    }, 17000); // 2 s más que el timeout interno de watchPosition
+}
+
+function pedirUbicacionManual() {
+    // Al reintentar manualmente solo actualizamos la UI y volvemos a pedir GPS.
+    // La promesaUbicacion ya se resolvió; ahora actualizamos `ubicacion` directo.
+    ubicacion = { lat: null, lng: null };
+    if (watchId !== null)    { navigator.geolocation.clearWatch(watchId); watchId = null; }
+    if (timeoutGPS !== null) { clearTimeout(timeoutGPS); timeoutGPS = null; }
+
+    if (!navigator.geolocation) return;
+
+    setEstadoUbicacion("my_location", "Reintentando obtener ubicación...", false);
+    document.getElementById("btn-pedir-ubicacion").classList.add("hidden");
+
+    watchId = navigator.geolocation.watchPosition(
+        function(pos) {
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            ubicacion = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            setEstadoUbicacion("location_on", `Ubicación obtenida ✓ (±${Math.round(pos.coords.accuracy)}m)`, false);
         },
         function(err) {
-            if (ubicacionResuelta) return;
-            clearTimeout(timeoutUbicacion);
-            ubicacionResuelta = true;
-            const msgs = {
-                1: "Permiso denegado — el sistema validará sin GPS.",
-                2: "Ubicación no disponible — el sistema validará sin GPS.",
-                3: "Tiempo agotado — el sistema validará sin GPS."
-            };
-            setEstadoUbicacion("location_off", msgs[err.code] || "Sin ubicación.", err.code === 1);
-            mostrarForm();
+            if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+            setEstadoUbicacion("location_off", "No se pudo obtener la ubicación.", true);
         },
-        { enableHighAccuracy: true, timeout: 4500, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
 }
 
-
-function pedirUbicacionManual() {
-    if (ubicacionResuelta) {
-        // Resetear para reintentar
-        ubicacionResuelta = false;
-        ubicacion = { lat: null, lng: null };
-    }
-    intentarObtenerUbicacion();
-}
-
-// Arrancar
-intentarObtenerUbicacion();
+// Arrancar GPS al cargar la página
+iniciarGPS();
 
 // ─── ENVIAR ASISTENCIA ───────────────────────────────────────────────────────
 document.getElementById("formulario-asistencia").addEventListener("submit", async function(e) {
     e.preventDefault();
     const btn   = document.getElementById("btn-marcar");
     const msgEl = document.getElementById("mensaje");
+
     btn.disabled = true;
     btn.innerHTML = '<span class="material-symbols-outlined text-lg">progress_activity</span> Registrando...';
     msgEl.innerText = "";
 
     const numero_cuenta = document.getElementById("numero_cuenta").value.trim();
 
-    
-    let tokenFinal = tokenInicial;
-    try {
-        const respToken = await fetch(`/materia/${idMateria}/generar_qr_token_publico`);
-        if (respToken.ok) {
-            const dt = await respToken.json();
-            tokenFinal = dt.token;
-        }
-    } catch (_) {  }
+    const tokenAEnviar = TOKEN_DEL_QR;
 
     try {
         const respuesta = await fetch(`/marcar_asistencia?id_materia=${idMateria}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                token: tokenFinal,
-                numero_cuenta,
-                lat: ubicacion.lat,  
-                lng: ubicacion.lng
+                token:         tokenAEnviar,
+                numero_cuenta: numero_cuenta,
+                lat:           ubicacion.lat,
+                lng:           ubicacion.lng
             })
         });
         const datos = await respuesta.json();
 
         if (respuesta.ok) {
-            document.getElementById("formulario-container").style.display = "none";
+            document.getElementById("formulario-container").style.display  = "none";
             document.getElementById("estado-ubicacion-card").style.display = "none";
-            const exito = document.getElementById("estado-exito");
-            exito.style.display = "block";
-            document.getElementById("mensaje-exito").innerText = datos.mensaje;
+            document.getElementById("estado-exito").style.display          = "block";
+            document.getElementById("mensaje-exito").innerText             = datos.mensaje;
         } else {
-            msgEl.innerText = datos.detail;
-            msgEl.style.color = "#ffb4ab";
-            btn.disabled = false;
-            btn.innerHTML = '<span class="material-symbols-outlined text-lg">how_to_reg</span> Marcar Asistencia';
+            msgEl.innerText    = datos.detail;
+            msgEl.style.color  = "#ffb4ab";
+            btn.disabled       = false;
+            btn.innerHTML      = '<span class="material-symbols-outlined text-lg">how_to_reg</span> Marcar Asistencia';
         }
     } catch (_) {
-        msgEl.innerText = "Error de red. Verifica tu conexión e intenta de nuevo.";
+        msgEl.innerText   = "Error de red. Verifica tu conexión e intenta de nuevo.";
         msgEl.style.color = "#ffb4ab";
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-symbols-outlined text-lg">how_to_reg</span> Marcar Asistencia';
+        btn.disabled      = false;
+        btn.innerHTML     = '<span class="material-symbols-outlined text-lg">how_to_reg</span> Marcar Asistencia';
     }
 });
 </script>

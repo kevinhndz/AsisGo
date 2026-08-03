@@ -270,19 +270,13 @@
 
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// BUG #1 — Guard de sesión: se ejecuta INMEDIATAMENTE al cargar
-// la página. Si no hay token (usuario cerró sesión), redirige al
-// login con ?sesion=expirada. Cubre el caso del botón "atrás".
-// ══════════════════════════════════════════════════════════════
+
 (function verificarSesionActiva() {
     if (!sessionStorage.getItem('miTokenJWT')) {
         window.location.replace('/iniciar_sesion?sesion=expirada');
     }
 })();
-
-// BUG #1 — Logout limpio: elimina el token y usa replace() para
-// que la página del workspace NO quede en el historial del navegador.
+.
 function cerrarSesion() {
     sessionStorage.removeItem('miTokenJWT');
     window.location.replace('/iniciar_sesion?sesion=expirada');
@@ -483,7 +477,11 @@ async function cargarEstudiantes() {
                     class="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-all active:scale-95">
                     <span class="material-symbols-outlined text-sm">edit</span>
                 </button>
-                <button onclick="abrirModalFaltas(${e.id_estudiante}, '${e.nombre.replace(/'/g,"\\'")}', ${e.faltas})"
+                <button
+                    data-id="${e.id_estudiante}"
+                    data-nombre="${e.nombre.replace(/"/g, '&quot;')}"
+                    data-faltas="${e.faltas}"
+                    onclick="abrirModalFaltasDesdeBtn(this)"
                     title="Ajustar faltas"
                     class="flex items-center gap-1 text-xs font-bold px-2.5 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all active:scale-95">
                     <span class="material-symbols-outlined text-sm">event_busy</span>
@@ -507,8 +505,7 @@ async function cargarEstudiantes() {
         </div>`;
 }
 
-// FIX: toggle de asistencia — siempre recarga la tabla (éxito o fallo) para
-// que el ícono nunca quede desincronizado con la BD.
+
 async function toggleAsistencia(idEstudiante, fecha, nuevoPresente) {
     const resp = await fetch(`/materia/${idMateriaActual}/corregir_asistencia`, {
         method: "PUT",
@@ -519,7 +516,7 @@ async function toggleAsistencia(idEstudiante, fecha, nuevoPresente) {
     cargarEstudiantes();
 }
 
-// NUEVO: guardar nota al salir del campo de texto (blur)
+
 async function guardarNota(idEstudiante, texto) {
     await fetch(`/estudiante/${idEstudiante}/notas`, {
         method: "PUT",
@@ -555,30 +552,65 @@ async function confirmarEliminarClase(idMateria, nombreClase) {
     }
 }
 
-// ── AJUSTAR FALTAS ───────────────────────────────────────────
+function abrirModalFaltasDesdeBtn(btn) {
+    const idEstudiante   = btn.dataset.id;
+    const nombre         = btn.dataset.nombre;
+    const faltasActuales = parseInt(btn.dataset.faltas) || 0;
+    abrirModalFaltas(idEstudiante, nombre, faltasActuales);
+}
+
 function abrirModalFaltas(idEstudiante, nombre, faltasActuales) {
-    document.getElementById("faltas-id-estudiante").value = idEstudiante;
+    document.getElementById("faltas-id-estudiante").value  = idEstudiante;
     document.getElementById("modal-faltas-nombre").innerText = `Estudiante: ${nombre}`;
-    document.getElementById("faltas-cantidad").value = faltasActuales;
-    document.getElementById("modal-faltas-msg").innerText = "";
+    // FIX BUG 2B: aseguramos que el input siempre tenga el valor actual de faltas
+    // y no quede vacío o con el valor de la última vez que se abrió el modal.
+    const inputFaltas = document.getElementById("faltas-cantidad");
+    inputFaltas.value = faltasActuales;
+    inputFaltas.min   = 0;
+    document.getElementById("modal-faltas-msg").innerText  = "";
+    document.getElementById("modal-faltas-msg").style.color = "";
     document.getElementById("modal-faltas").classList.add("activo");
+    // Enfocar el input para que el profesor pueda escribir de inmediato
+    setTimeout(() => inputFaltas.focus(), 100);
 }
 
 async function guardarFaltas() {
-    const idEst  = document.getElementById("faltas-id-estudiante").value;
-    const faltas = parseInt(document.getElementById("faltas-cantidad").value);
-    const msgEl  = document.getElementById("modal-faltas-msg");
-    if (isNaN(faltas) || faltas < 0) { msgEl.innerText = "Ingresa un número válido."; msgEl.style.color = "#ffb4ab"; return; }
+    const idEst   = document.getElementById("faltas-id-estudiante").value;
+    const faltas  = parseInt(document.getElementById("faltas-cantidad").value);
+    const msgEl   = document.getElementById("modal-faltas-msg");
+    const btnGuardar = document.querySelector("#modal-faltas button[onclick='guardarFaltas()']");
+
+    if (isNaN(faltas) || faltas < 0) {
+        msgEl.innerText    = "Ingresa un número válido (0 o más).";
+        msgEl.style.color  = "#ffb4ab";
+        return;
+    }
+
+    // FIX BUG 2C: deshabilitar el botón mientras espera la respuesta para
+    // evitar doble envío si el profesor hace doble clic.
+    if (btnGuardar) btnGuardar.disabled = true;
+    msgEl.innerText   = "Guardando...";
+    msgEl.style.color = "#e2bfb0";
+
     const resp  = await fetch(`/estudiante/${idEst}/ajustar_faltas`, {
-        method: "PUT", headers: hdrs(), body: JSON.stringify({ faltas })
+        method: "PUT",
+        headers: hdrs(),
+        body: JSON.stringify({ faltas })
     });
     const datos = await resp.json();
+
     if (resp.ok) {
-        document.getElementById("modal-faltas").classList.remove("activo");
-        cargarEstudiantes();
+        msgEl.innerText   = "✓ " + datos.mensaje;
+        msgEl.style.color = "#ffb693";
+        // Cerrar el modal tras un breve momento para que el profesor vea la confirmación
+        setTimeout(() => {
+            document.getElementById("modal-faltas").classList.remove("activo");
+            cargarEstudiantes();
+        }, 800);
     } else {
-        msgEl.innerText = datos.detail;
+        msgEl.innerText   = datos.detail || "Error al guardar.";
         msgEl.style.color = "#ffb4ab";
+        if (btnGuardar) btnGuardar.disabled = false;
     }
 }
 
