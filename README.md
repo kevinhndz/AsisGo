@@ -2,6 +2,8 @@
 
 Esta guía sigue exactamente el orden en que desplegamos el proyecto en el servidor, comando por comando, incluyendo los errores reales que salieron y cómo se resolvieron.
 
+Puedes visitar el sistema entrando a : https://asisgo.duckdns.org/
+
 ---
 
 ## 🖥️ Infraestructura utilizada
