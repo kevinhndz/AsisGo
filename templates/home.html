@@ -257,31 +257,60 @@ body {
 </div>
 <!-- Metrics Bar Section -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 py-16 opacity-0 animate-fade-up stagger-4 relative z-20">
-<div class="glass-card rounded-[32px] p-8 flex items-center gap-6 group">
-<div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 group-hover:bg-accent-orange/10 group-hover:border-accent-orange/30">
-<span class="material-symbols-outlined text-accent-orange text-3xl">gps_fixed</span>
+<!-- Card 1: GPS Precision (Gray) -->
+<div class="bg-gray-400 rounded-[32px] p-8 flex flex-col justify-between min-h-[400px] transition-transform hover:scale-[1.02] duration-300">
+<div class="flex justify-start">
+<span class="text-black font-bold text-xl tracking-tight">ASIS GO+</span>
 </div>
-<div>
-<h4 class="text-2xl font-extrabold text-white">99.9%</h4>
-<p class="text-sm font-medium text-gray-500">Precisión GPS</p>
+<div class="flex flex-col items-center justify-center">
+<h4 class="text-6xl md:text-7xl font-black text-black leading-none mb-4">99.9%</h4>
+<p class="text-black/60 font-bold uppercase tracking-widest text-sm">Precisión GPS</p>
+</div>
+<div class="flex justify-between items-end">
+<div class="flex gap-2">
+<div class="w-10 h-10 rounded-full bg-accent-orange flex items-center justify-center text-white">
+<span class="material-symbols-outlined">gps_fixed</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-black">
+<span class="material-symbols-outlined">database</span>
 </div>
 </div>
-<div class="glass-card rounded-[32px] p-8 flex items-center gap-6 group">
-<div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 group-hover:bg-accent-orange/10 group-hover:border-accent-orange/30">
-<span class="material-symbols-outlined text-accent-orange text-3xl">bolt</span>
-</div>
-<div>
-<h4 class="text-2xl font-extrabold text-white">&lt; 2s</h4>
-<p class="text-sm font-medium text-gray-500">Tiempo de registro</p>
+<span class="material-symbols-outlined text-4xl text-black">north_east</span>
 </div>
 </div>
-<div class="glass-card rounded-[32px] p-8 flex items-center gap-6 group">
-<div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 group-hover:bg-accent-orange/10 group-hover:border-accent-orange/30">
-<span class="material-symbols-outlined text-accent-orange text-3xl">verified_user</span>
+<!-- Card 2: Registration Time (White) -->
+<div class="bg-white rounded-[32px] p-8 flex flex-col items-center text-center min-h-[400px] transition-transform hover:scale-[1.02] duration-300">
+<div class="w-full flex justify-start mb-4">
+<span class="text-black font-bold text-xl tracking-tight">ASIS GO+</span>
 </div>
-<div>
-<h4 class="text-2xl font-extrabold text-white">Zero</h4>
-<p class="text-sm font-medium text-gray-500">Intento de fraude</p>
+<div class="flex-1 flex flex-col items-center justify-center">
+<div class="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center mb-6 overflow-hidden">
+<span class="material-symbols-outlined text-6xl text-gray-300">person</span>
+</div>
+<h4 class="text-6xl md:text-7xl font-black text-black leading-none mb-2">&lt; 2s</h4>
+<p class="text-gray-500 font-bold uppercase tracking-widest text-sm">Tiempo de registro</p>
+</div>
+<div class="w-full mt-4 pt-4 border-t border-gray-100">
+<p class="text-black font-bold">Optimización — Global</p>
+</div>
+</div>
+<!-- Card 3: Fraud Prevention (Vibrant Orange) -->
+<div class="bg-accent-orange rounded-[32px] p-8 flex flex-col justify-between min-h-[400px] transition-transform hover:scale-[1.02] duration-300">
+<div class="flex justify-between items-start">
+<span class="text-white font-bold text-xl tracking-tight">ASIS GO+</span>
+<span class="material-symbols-outlined text-white">verified</span>
+</div>
+<div class="mt-auto text-white">
+<p class="text-white/80 font-bold uppercase tracking-widest text-sm mb-4">Seguridad Total</p>
+<h4 class="text-7xl md:text-8xl font-black leading-none mb-6">ZERO</h4>
+<div class="flex flex-col items-center">
+<span class="material-symbols-outlined text-5xl mb-2">filter_vintage</span>
+<p class="text-white/90 font-bold">Intento de fraude</p>
+</div>
+<div class="flex justify-between items-center mt-8 pt-4 border-t border-white/20">
+<span class="text-xs font-bold">Global Security — US</span>
+<span class="material-symbols-outlined">north_east</span>
+</div>
 </div>
 </div>
 </div>
