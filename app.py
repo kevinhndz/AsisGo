@@ -9,7 +9,6 @@ from sqlalchemy.orm import Session
 from datetime import date, datetime, timedelta
 from math import radians, sin, cos, sqrt, atan2
 from pydantic import BaseModel
-import socket
 import os
 
 
@@ -26,31 +25,14 @@ from models.tablas import (
 )
 from models.sesion_qr import generar_nuevo_token, token_es_valido, SESIONES_QR_ACTIVAS
 from models.correo import enviar_correo_grabacion
+from core.config import BASE_URL, NOMBRES_DIAS
+from routers.autenticacion import router as autenticacion_router
+from routers.paginas import router as paginas_router
 
 # NUEVO: para el reporte en PDF
 from fpdf import FPDF
 
-def obtener_ip_local() -> str:
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        ip = s.getsockname()[0]
-        s.close()
-        return ip
-    except Exception:
-        return "127.0.0.1"
-
-def obtener_base_url() -> str:
-    base_url_env = os.getenv("BASE_URL")
-    if base_url_env:
-        return base_url_env.rstrip("/")
-    return f"http://{obtener_ip_local()}:8000"
-
-BASE_URL = obtener_base_url()
 CLASES_EN_CURSO: dict = {}
-
-
-NOMBRES_DIAS = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo"]
 
 
 
@@ -88,6 +70,8 @@ async def validacion_en_espanol(request: Request, exc: RequestValidationError):
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"))
+app.include_router(paginas_router)
+app.include_router(autenticacion_router)
 
 origenes_permitidos = [
     "https:// cualquera.com",
@@ -111,69 +95,6 @@ miClaseBase.metadata.create_all(bind=motor)
 # ============================================================
 # RUTAS HTML — templating
 # ============================================================
-
-@app.get('/', response_class=HTMLResponse)
-def home(request: Request):
-    return templates.TemplateResponse(request, 'home.html')
-
-@app.get('/iniciar_sesion', response_class=HTMLResponse)
-def mostrar_login(request: Request):
-    return templates.TemplateResponse(request, 'login.html')
-
-@app.get('/sign_up', response_class=HTMLResponse)
-def mostrar_signup(request: Request):
-    return templates.TemplateResponse(request, 'signup.html')
-
-@app.get('/interface', response_class=HTMLResponse)
-def mostrar_interface(request: Request, response: Response):
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return templates.TemplateResponse(request, 'interface.html')
-
-@app.get('/workspace', response_class=HTMLResponse)
-def mostrar_workspace(request: Request, response: Response):
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return templates.TemplateResponse(request, 'workspace.html')
-
-
-
-@app.post('/login', status_code=status.HTTP_200_OK)
-def login(
-    json_recibido: RevisarDatos,
-    base_datos: Session = Depends(abrir_puerta_bd)
-):
-    user_que_vino = base_datos.query(TablaUsuarios).filter(
-        TablaUsuarios.usuario == json_recibido.usuario
-    ).first()
-
-    if user_que_vino is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Usuario no encontrado"
-        )
-
-    if not verificar_contrasena(json_recibido.contrasena, user_que_vino.contrasena):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Contrasena incorrecta!"
-        )
-
-    diccionario_profesor = {
-        "id_usuario": user_que_vino.id_usuario,
-        "usuario": user_que_vino.usuario
-    }
-
-    mi_token = emitir_credencial(diccionario_profesor)
-
-    return {
-        "mensaje": "Bienvenido",
-        "token": mi_token,
-        "token_type": "bearer"
-    }
-
 
 @app.post('/sign_up', status_code=status.HTTP_200_OK)
 def crear_cliente(
