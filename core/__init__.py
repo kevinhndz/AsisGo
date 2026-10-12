@@ -1,1 +1,0 @@
-"""Configuracion compartida de AsisGo."""
