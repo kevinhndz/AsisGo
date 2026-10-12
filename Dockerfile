@@ -1,36 +1,30 @@
-# ── Etapa 1: imagen base ─────────────────────────────────────────────────────
+FROM php:8.3-apache
 
-FROM python:3.12-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git unzip libpq-dev libzip-dev libonig-dev libxml2-dev \
+    && docker-php-ext-install pdo_pgsql mbstring zip dom \
+    && a2enmod rewrite headers \
+    && rm -rf /var/lib/apt/lists/*
 
-# ── Etapa 2: directorio de trabajo dentro del contenedor ─────────────────────
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-WORKDIR /app
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
+    && sed -ri 's!AllowOverride None!AllowOverride All!g' /etc/apache2/apache2.conf \
+    && sed -ri 's/Listen 80/Listen 8000/' /etc/apache2/ports.conf \
+    && sed -ri 's/<VirtualHost \*:80>/<VirtualHost *:8000>/' /etc/apache2/sites-available/*.conf
 
-# ── Etapa 3: instalar dependencias ───────────────────────────────────────────
-
-COPY requirements.txt .
-
-RUN pip install --no-cache-dir -r requirements.txt
-
-# ── Etapa 4: copiar el resto del codigo ──────────────────────────────────────
-# Ahora copiamos todo lo demás: app.py, models/, templates/, static/
-# El .dockerignore (que crearemos) le dice a Docker que ignorar (venv, .env, etc.)
+WORKDIR /var/www/html
+COPY composer.json ./
+RUN composer install --no-dev --no-interaction --no-progress --prefer-dist --no-scripts
 COPY . .
+RUN composer dump-autoload --no-dev --optimize \
+    && mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache
 
-# ── Etapa 5: puerto que expone la app ────────────────────────────────────────
-# EXPOSE es solo documentacion — le dice a quien lea el Dockerfile que puerto usa.
-# No abre el puerto por si solo; eso lo hace el comando docker run con -p.
+COPY docker-entrypoint.sh /usr/local/bin/asisgo-entrypoint
+RUN chmod +x /usr/local/bin/asisgo-entrypoint
+
 EXPOSE 8000
-
-# ── Etapa 6: comando de arranque ─────────────────────────────────────────────
-# Este es el comando que se ejecuta cuando el contenedor inicia.
-# 
-# --host 0.0.0.0 : escucha en TODAS las interfaces de red del contenedor,
-#                  no solo en localhost. Sin esto, el contenedor no es accesible
-#                  desde afuera aunque el puerto este abierto.
-#
-# --workers 2    : dos procesos paralelos. Para 512MB de RAM de mi droplet, 2 es el maximo
-#                  seguro. 
-#
-
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+ENTRYPOINT ["asisgo-entrypoint"]
+CMD ["apache2-foreground"]

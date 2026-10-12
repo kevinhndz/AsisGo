@@ -1,20 +1,41 @@
-name: Deploy to Droplet
+name: Validar y desplegar AsisGo
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  deploy:
+  validar:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout del código
-        uses: actions/checkout@v3
+      - name: Descargar el código
+        uses: actions/checkout@v4
 
-      - name: Desplegar en el Droplet vía SSH
-        uses: appleboy/ssh-action@v0.1.10
+      - name: Preparar PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, mbstring, pdo_pgsql, zip
+          coverage: none
+
+      - name: Instalar dependencias
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Validar dependencias
+        run: composer validate --no-check-publish
+
+      - name: Validar rutas Laravel
+        run: php artisan route:list --except-vendor
+
+      - name: Construir imagen de producción
+        run: docker build -t asisgo:ci .
+
+  desplegar:
+    needs: validar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Desplegar en el servidor
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USER }}
