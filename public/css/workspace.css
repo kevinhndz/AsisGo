@@ -1,0 +1,43 @@
+
+        body { font-family: 'Inter', sans-serif; background-color:#131313; }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
+        input:-webkit-autofill, select:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #1c1b1b inset !important; -webkit-text-fill-color:#e5e2e1 !important; }
+        select option { background:#201f1f; color:#e5e2e1; }
+
+        /* ── Glass cards (bento grid) ── */
+        .glass-card {
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 1rem;
+            transition: all .3s cubic-bezier(.4,0,.2,1);
+        }
+        .glass-card:hover { border-color: rgba(255,255,255,0.20); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(255,255,255,0.04); }
+
+        /* ── Tabla estilo Stitch ── */
+        .t-head th { background:rgba(255,255,255,0.02); color:#d7c2ba; padding:12px 16px; text-align:left; font-weight:700; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.08); white-space:nowrap; }
+        .t-body td { padding:8px 16px; border-bottom:1px solid rgba(255,255,255,0.05); color:#e5e2e1; font-size:0.8rem; vertical-align:middle; }
+        .t-body tr:hover td { background:rgba(255,255,255,0.05); }
+        .t-vivo th { background:rgba(255,255,255,0.02); color:#d7c2ba; padding:10px 14px; text-align:left; font-weight:700; font-size:10px; letter-spacing:0.1em; text-transform:uppercase; border-bottom:1px solid rgba(255,255,255,0.08); }
+        .t-vivo td { padding:8px 14px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:0.8rem; color:#e5e2e1; }
+
+        .pill { display:inline-flex; align-items:center; gap:6px; padding:3px 10px; border-radius:9999px; font-size:10px; font-weight:600; letter-spacing:0.03em; white-space:nowrap; }
+        .badge-modalidad { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.05); padding:3px 10px; border-radius:9999px; font-size:10px; letter-spacing:0.03em; }
+
+        /* Modales */
+        .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; align-items:center; justify-content:center; backdrop-filter:blur(4px); }
+        .modal-overlay.activo { display:flex; }
+
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);} }
+        @keyframes fadeInUp { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
+        @keyframes fadeInSlideIn { from{opacity:0;transform:translateX(-10px);}to{opacity:1;transform:translateX(0);} }
+        @keyframes scanline { 0%,100%{transform:translateY(-40px);} 50%{transform:translateY(40px);} }
+        .modal-card { animation: fadeUp 0.25s ease; }
+        .card-in { animation: fadeInUp 0.5s ease-out both; }
+        .row-in { animation: fadeInSlideIn 0.3s ease-out both; }
+    
+.workspace-tag-icon {
+    font-size: 16px;
+}
+

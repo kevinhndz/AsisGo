@@ -1,0 +1,7 @@
+
+  .material-symbols-outlined{font-family:'Material Symbols Outlined';font-weight:normal;font-style:normal;font-size:24px;line-height:1;display:inline-block;white-space:nowrap;-webkit-font-smoothing:antialiased;}
+  input:-webkit-autofill{-webkit-box-shadow:0 0 0 30px #201f1f inset !important;-webkit-text-fill-color:#e5e2e1 !important;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .animate-spin{animation:spin 1s linear infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+  .animate-pulse{animation:pulse 2s ease infinite;}

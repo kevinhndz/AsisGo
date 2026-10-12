@@ -1,0 +1,6 @@
+
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined { font-family:'Material Symbols Outlined'; font-weight:normal; font-style:normal; font-size:24px; line-height:1; display:inline-block; white-space:nowrap; -webkit-font-smoothing:antialiased; }
+        input:-webkit-autofill, select:-webkit-autofill { -webkit-box-shadow:0 0 0 30px #1c1b1b inset !important; -webkit-text-fill-color:#e5e2e1 !important; }
+        select option { background:#201f1f; color:#e5e2e1; }
+    

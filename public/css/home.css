@@ -1,0 +1,68 @@
+
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #0a0a0c;
+    overflow-x: hidden;
+    position: relative;
+    width: 100%;
+}
+
+#shader-canvas {
+    max-width: 100vw !important;
+}
+
+* {
+    max-width: 100%;
+}
+  
+  #shader-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+  }
+
+  .text-gradient {
+    background: linear-gradient(to bottom, #ffffff 40%, #94a3b8 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .accent-gradient {
+    background: linear-gradient(135deg, #f97316 0%, #fbbf24 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glass-card {
+    background: rgba(15, 23, 42, 0.3);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .glass-card:hover {
+    border-color: rgba(249, 115, 22, 0.4);
+    box-shadow: 0 0 30px -10px rgba(249, 115, 22, 0.3);
+  }
+
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+
+  .qr-pattern {
+    background-image: radial-gradient(#ffffff 2px, transparent 2px);
+    background-size: 8px 8px;
+  }
